@@ -1,0 +1,78 @@
+.hallazgos-table {
+  width: 100%;
+  overflow-x: auto;
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 640px;
+  }
+
+  thead tr {
+    background: #f8fafc;
+  }
+
+  th {
+    text-align: left;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #64748b;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  td {
+    padding: 0.9rem 1rem;
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 0.95rem;
+    color: #1e293b;
+  }
+
+  tr:last-child td {
+    border-bottom: none;
+  }
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: #e2e8f0;
+  color: #475569;
+
+  &--red {
+    background: #fee2e2;
+    color: #b91c1c;
+  }
+
+  &--yellow {
+    background: #fef3c7;
+    color: #b45309;
+  }
+
+  &--green {
+    background: #dcfce7;
+    color: #15803d;
+  }
+}
+
+.riesgo {
+  font-weight: 600;
+
+  &--alto {
+    color: #dc2626;
+  }
+
+  &--medio {
+    color: #ca8a04;
+  }
+
+  &--bajo {
+    color: #15803d;
+  }
+}
+

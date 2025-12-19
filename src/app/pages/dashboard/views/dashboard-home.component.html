@@ -1,0 +1,174 @@
+<section class="dashboard-home">
+  <div class="dashboard-home__kpis">
+    @for (card of kpiCards(); track card.label) {
+      <app-kpi-card
+        [label]="card.label"
+        [value]="card.value"
+        [helper]="card.helper"
+        [icon]="card.icon"
+        [accent]="card.accent"
+      />
+    }
+
+    <article class="kpi-card kpi-card--gradient">
+      <div>
+        <p>Nivel de Riesgo</p>
+        <strong>Bajo</strong>
+        <small>Tendencia estable</small>
+      </div>
+      <svg viewBox="0 0 24 24" stroke-width="1.5" fill="none" aria-hidden="true">
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          d="M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5 0l-1 3m8.5-3l1 3m0 0l.5 1.5m-.5-1.5h-9.5m0 0l-.5 1.5m.75-9 3-3 2.148 2.148A12.061 12.061 0 0116.5 7.605"
+        />
+      </svg>
+    </article>
+  </div>
+
+  <div class="dashboard-home__analytics">
+    <article class="heatmap-card">
+      <header>
+        <div>
+          <h3>Mapa de Calor de Riesgos</h3>
+          <p>Vista rápida de los focos críticos en obra.</p>
+        </div>
+        <div class="heatmap-card__legend">
+          <span class="badge badge--red">Alto</span>
+          <span class="badge badge--yellow">Medio</span>
+        </div>
+      </header>
+
+      <div class="heatmap-card__map">
+        <img
+          src="data:image/svg+xml;base64,IDxzdmcgd2lkdGg9IjEwMjQiIGhlaWdodD0iMTAyNCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIHByZXNlcnZlQXNwZWN0UmF0aW89Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+IDxkZWZzPiA8bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSItMTAwJSIgeTE9IjAiIHgyPSIwIiB5Mj0iMCI+IDxzdG9wIG9mZnNldD0iMCIgc3RvcC1jb2xvcj0iI2IwYjBiMCIvPiA8c3RvcCBvZmZzZXQ9Ii41IiBzdG9wLWNvbG9yPSIjZjBmMGYwIi8+IDxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iI2IwYjBiMCIvPiA8YW5pbWF0ZVRyYW5zZm9ybSBpZD0iYSIgYXR0cmlidXRlTmFtZT0iZ3JhZGllbnRUcmFuc2Zvcm0iIHR5cGU9InRyYW5zbGF0ZSIgZnJvbT0iMCIgdG89IjIiIGR1cj0iMXMiIGJlZ2luPSIwcyIvPiA8YW5pbWF0ZVRyYW5zZm9ybSBpZD0iYiIgYXR0cmlidXRlTmFtZT0iZ3JhZGllbnRUcmFuc2Zvcm0iIHR5cGU9InRyYW5zbGF0ZSIgZnJvbT0iMCIgdG89IjIiIGR1cj0iMS41cyIgYmVnaW49ImEuZW5kIi8+IDxhbmltYXRlVHJhbnNmb3JtIGF0dHJpYnV0ZU5hbWU9ImdyYWRpZW50VHJhbnNmb3JtIiB0eXBlPSJ0cmFuc2xhdGUiIGZyb209IjAiIHRvPSIyIiBkdXI9IjJzIiBiZWdpbj0iYi5lbmQiIHJlcGVhdENvdW50PSJpbmRlZmluaXRlIi8+IDwvbGluZWFyR3JhZGllbnQ+IDwvZGVmcz4gPHJlY3Qgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxMDAiIGZpbGw9InVybCgjZykiLz4gPC9zdmc+IA=="
+          alt="Plano obra"
+        />
+
+        <div class="heatmap-card__overlay">
+          <div class="heat-spot heat-spot--red" style="top: 22%; left: 32%;" title="Zona húmeda - Riesgo eléctrico"></div>
+          <div class="heat-spot heat-spot--yellow" style="top: 62%; right: 20%;" title="Acopio materiales"></div>
+          <div class="heat-spot heat-spot--red" style="bottom: 12%; left: 12%;" title="Excavación abierta"></div>
+
+          <button class="heat-marker heat-marker--red" style="top: 26%; left: 34%;">!</button>
+          <button class="heat-marker heat-marker--red" style="bottom: 16%; left: 14%;">!</button>
+        </div>
+      </div>
+      <p class="heatmap-card__hint">Datos en vivo. Punto crítico: Sector B (humedad).</p>
+    </article>
+
+    <article class="trend-card">
+      <header>
+        <div>
+          <h3>Tendencia de Seguridad (7 días)</h3>
+          <p>Comparativa entre nuevos riesgos y los solucionados por día.</p>
+        </div>
+      </header>
+      <div class="trend-card__chart">
+        <svg viewBox="0 0 600 200" preserveAspectRatio="none">
+          <line x1="0" y1="200" x2="600" y2="200" stroke="#e5e7eb" stroke-width="2" />
+          <line x1="0" y1="0" x2="0" y2="200" stroke="#e5e7eb" stroke-width="2" />
+
+          <polyline fill="none" stroke="#ef4444" stroke-width="3" points="0,150 100,120 200,160 300,80 400,100 500,60 600,90" />
+          <g fill="#ef4444">
+            <circle cx="0" cy="150" r="4" />
+            <circle cx="100" cy="120" r="4" />
+            <circle cx="200" cy="160" r="4" />
+            <circle cx="300" cy="80" r="4" />
+            <circle cx="400" cy="100" r="4" />
+            <circle cx="500" cy="60" r="4" />
+            <circle cx="600" cy="90" r="4" />
+          </g>
+
+          <polyline
+            fill="none"
+            stroke="#22c55e"
+            stroke-width="3"
+            stroke-dasharray="5,5"
+            points="0,180 100,170 200,140 300,100 400,120 500,80 600,50"
+          />
+        </svg>
+        <div class="trend-card__legend">
+          <span><i class="legend-dot legend-dot--red"></i>Nuevos Riesgos</span>
+          <span><i class="legend-dot legend-dot--green"></i>Solucionados</span>
+        </div>
+      </div>
+    </article>
+
+    <article class="risk-bars">
+      <header>
+        <h3>Riesgos por Sector</h3>
+        <p>Zonas con mayor densidad de hallazgos abiertos.</p>
+      </header>
+      <div class="risk-bars__list">
+        @for (risk of riskBySector; track risk.label) {
+          <div class="risk-row">
+            <div class="risk-row__label">
+              <span>{{ risk.label }}</span>
+              <strong>{{ risk.total }}</strong>
+            </div>
+            <div class="risk-row__bar">
+              <span
+                class="risk-row__bar-fill"
+                [style.width.%]="risk.percentage"
+                [class]="'risk-row__bar-fill--' + risk.color"
+              ></span>
+            </div>
+          </div>
+        }
+      </div>
+    </article>
+
+    <article class="alert-feed">
+      <header>
+        <h3>Alertas recientes</h3>
+        <span class="badge badge--info">Tiempo real</span>
+      </header>
+      <div class="alert-feed__list">
+        @for (alert of criticalAlerts; track alert.title) {
+          <div class="alert-feed__item" [class.alert-feed__item--orange]="alert.severity === 'orange'">
+            <div>
+              <p>{{ alert.title }}</p>
+              <small>{{ alert.location }}</small>
+            </div>
+            <span class="dot" [class.dot--orange]="alert.severity === 'orange'"></span>
+          </div>
+        }
+      </div>
+    </article>
+  </div>
+
+  <div class="dashboard-home__split">
+    <article class="alerts-card">
+      <header>
+        <h3>
+          <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path
+              fill-rule="evenodd"
+              d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+              clip-rule="evenodd"
+            />
+          </svg>
+          Atención Inmediata
+        </h3>
+      </header>
+      <div class="alerts-card__list">
+        @for (alert of criticalAlerts; track alert.title) {
+          <div class="alert-item" [class.alert-item--orange]="alert.severity === 'orange'">
+            <p>{{ alert.title }}</p>
+            <small>{{ alert.location }}</small>
+          </div>
+        }
+      </div>
+    </article>
+
+    <article class="reports-card">
+      <header>
+        <h3>Últimos Reportes</h3>
+        <button type="button">Ver todo</button>
+      </header>
+      <app-hallazgos-table [hallazgos]="hallazgos()"></app-hallazgos-table>
+    </article>
+  </div>
+</section>
+

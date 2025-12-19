@@ -1,0 +1,107 @@
+<section class="team-page">
+  <header class="team-page__header">
+    <div>
+      <h1>Personal en Obra</h1>
+      <p>Controla asistencia, alertas SSO y certificaciones en tiempo real.</p>
+    </div>
+    <div class="team-page__actions">
+      <div class="search-box">
+        <svg viewBox="0 0 24 24" stroke-width="1.5" fill="none">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.2-5.2m0 0A7.5 7.5 0 105.2 5.2 7.5 7.5 0 0015.8 15.8z" />
+        </svg>
+        <input #searchInput type="text" placeholder="Buscar trabajador..." (input)="updateSearch(searchInput.value)" />
+      </div>
+      <button class="btn btn--ghost">
+        <svg viewBox="0 0 24 24" stroke-width="1.5" fill="none">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M18 9l3 3m0 0l-3 3m3-3H3" />
+        </svg>
+        Exportar
+      </button>
+      <button class="btn btn--primary">
+        <svg viewBox="0 0 24 24" stroke-width="1.5" fill="none">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+        </svg>
+        Agregar
+      </button>
+    </div>
+  </header>
+
+  <div class="team-filters">
+    @for (filter of filters; track filter.id) {
+      <button
+        type="button"
+        [class.team-filters__chip--active]="selectedFilter() === filter.id"
+        (click)="selectFilter(filter.id)"
+      >
+        {{ filter.label }}
+      </button>
+    }
+  </div>
+
+  <div class="team-grid">
+    @for (member of filteredMembers(); track member.name) {
+      <article class="team-card">
+        <div class="team-card__top">
+          <div class="team-card__identity">
+            <span class="avatar" [class]="member.badgeColor">{{ member.avatar }}</span>
+            <div>
+              <h3>{{ member.name }}</h3>
+              <p>{{ member.role }}</p>
+            </div>
+          </div>
+          <span class="status-pill" [class.status-pill--inactive]="member.status === 'Ausente'">
+            <i></i>
+            {{ member.status }}
+          </span>
+        </div>
+
+        <div class="team-card__meta">
+          <div>
+            <span>Ubicación</span>
+            <strong>{{ member.location }}</strong>
+          </div>
+          <div>
+            <span>Última conexión</span>
+            <strong>{{ member.lastSeen }}</strong>
+          </div>
+        </div>
+
+        <div class="team-card__compliance">
+          <div class="team-card__compliance-header">
+            <span>Cumplimiento SSO</span>
+            <strong [class.text-red]="member.compliance < 80">{{ member.compliance }}%</strong>
+          </div>
+          <div class="progress-bar">
+            <span
+              class="progress-bar__fill"
+              [class]="complianceClass(member.compliance)"
+              [style.width.%]="member.compliance"
+            ></span>
+          </div>
+        </div>
+
+        <div class="team-card__alerts">
+          @if (member.alerts.length === 0) {
+            <span class="chip chip--ok">✅ Documentación al día</span>
+          } @else {
+            @for (alert of member.alerts; track alert) {
+              <span class="chip chip--alert">⚠️ {{ alert }}</span>
+            }
+          }
+        </div>
+
+        <div class="team-card__footer">
+          <button class="btn btn--light">Ver perfil</button>
+          <button class="btn btn--outline">Contactar</button>
+        </div>
+      </article>
+    }
+
+    @if (filteredMembers().length === 0) {
+      <div class="team-empty">
+        <h3>Sin coincidencias</h3>
+        <p>No encontramos personal con esos criterios. Intenta con otro término.</p>
+      </div>
+    }
+  </div>
+</section>

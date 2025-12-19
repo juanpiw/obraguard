@@ -1,0 +1,33 @@
+<aside class="sidebar" [class.sidebar--mobile]="variant === 'mobile'">
+  <div class="sidebar__brand">
+    <svg viewBox="0 0 24 24" stroke-width="1.5" fill="none" aria-hidden="true">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+    <span>ObraGuard</span>
+  </div>
+
+  <nav class="sidebar__nav">
+    @for (link of links; track link.route) {
+      <a
+        [routerLink]="link.route"
+        routerLinkActive="nav-link--active"
+        class="nav-link"
+        (click)="handleNavigate()"
+      >
+        <svg viewBox="0 0 24 24" stroke-width="1.5" fill="none" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" [attr.d]="iconPath(link.icon)" />
+        </svg>
+        <span>{{ link.label }}</span>
+      </a>
+    }
+  </nav>
+
+  <div class="sidebar__profile">
+    <img src="https://placehold.co/100x100/667eea/ffffff?text=RM" alt="Foto de perfil" />
+    <div>
+      <p>Ricardo Morales</p>
+      <small>Jefe de Obra</small>
+    </div>
+  </div>
+</aside>
+

@@ -1,0 +1,27 @@
+<header class="dashboard-header">
+  <div class="dashboard-header__left">
+    <button class="header-menu" type="button" (click)="toggleMenu.emit()">
+      <svg viewBox="0 0 24 24" stroke-width="1.5" fill="none" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+      </svg>
+    </button>
+    <h1>{{ title }}</h1>
+  </div>
+
+  <div class="header-weather">
+    <span class="header-weather__icon">⛅</span>
+    <div>
+      <p>Santiago</p>
+      <small>22°C · Viento 12km/h</small>
+    </div>
+  </div>
+
+  <button class="header-cta" type="button" (click)="openModal.emit()">
+    <svg viewBox="0 0 24 24" stroke-width="1.5" fill="none" aria-hidden="true">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+    </svg>
+    <span class="header-cta__label--desktop">Registrar Hallazgo</span>
+    <span class="header-cta__label--mobile">Nuevo</span>
+  </button>
+</header>
+

@@ -1,0 +1,40 @@
+<section class="dashboard-shell">
+  <aside class="dashboard-shell__sidebar">
+    <app-dashboard-sidebar [links]="links"></app-dashboard-sidebar>
+  </aside>
+
+  <div class="dashboard-shell__content">
+    <app-dashboard-header
+      [title]="pageTitle()"
+      (toggleMenu)="toggleMobileMenu()"
+      (openModal)="openModal()"
+    ></app-dashboard-header>
+
+    <div class="dashboard-shell__mobile-nav" *ngIf="mobileMenuOpen()">
+      <app-dashboard-sidebar [links]="links" variant="mobile" (navigate)="closeMobileMenu()"></app-dashboard-sidebar>
+    </div>
+
+    <main class="dashboard-shell__main">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+
+  <div class="dashboard-shell__overlay" *ngIf="mobileMenuOpen()" (click)="closeMobileMenu()"></div>
+
+  <app-hallazgo-modal
+    [open]="modalOpen()"
+    (close)="closeModal()"
+    (submitted)="handleModalSubmit($event)"
+  ></app-hallazgo-modal>
+
+  <app-dashboard-toast
+    [message]="toastMessage()"
+    [visible]="toastVisible()"
+    (dismiss)="dismissToast()"
+  ></app-dashboard-toast>
+</section>
+
+
+
+
+

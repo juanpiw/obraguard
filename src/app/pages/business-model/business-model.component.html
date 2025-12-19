@@ -1,0 +1,358 @@
+<div class="business-model-page bg-slate-50 text-slate-800">
+  <nav class="business-model__nav">
+    <div class="business-model__nav-inner">
+      <a class="brand" routerLink="/">
+        <span class="material-symbols-outlined text-orange-500 text-3xl">safety_check</span>
+        <span class="font-display font-bold text-xl tracking-tight">ObraGuard</span>
+      </a>
+
+      <div class="hidden md:flex items-center gap-8">
+        <a
+          *ngFor="let link of topNavLinks"
+          class="text-sm font-medium text-slate-600 transition hover:text-orange-600"
+          [attr.href]="link.href"
+        >
+          {{ link.label }}
+        </a>
+      </div>
+
+      <button type="button" class="business-model__cta">
+        Descargar informe PDF
+      </button>
+    </div>
+  </nav>
+
+  <section class="business-hero" id="hero">
+    <div class="business-hero__bg"></div>
+    <div class="business-hero__overlay"></div>
+
+    <div class="hero-content">
+      <div class="hero-text">
+        <div class="hero-badge">
+          <span class="ping-dot"></span>
+          Informe estratégico 2025
+        </div>
+
+        <h1>
+          Seguridad predictiva<br />
+          <span>impulsada por IA</span>
+        </h1>
+
+        <p>
+          Transformamos la seguridad en construcción de un centro de costos pasivo a un activo
+          predictivo. El modelo ObraGuard está diseñado para la realidad económica de LatAm y la
+          potencia de Llama 3.2 Vision.
+        </p>
+
+        <div class="hero-actions">
+          <a href="#economics" class="btn btn--light">
+            <span class="material-symbols-outlined">calculate</span>
+            Ver análisis económico
+          </a>
+          <a href="#pricing" class="btn btn--ghost">Explorar modelo de negocio</a>
+        </div>
+      </div>
+
+      <div class="hero-card">
+        <h3>
+          <span class="material-symbols-outlined text-green-400">trending_up</span>
+          Tesis de inversión
+        </h3>
+
+        <div class="hero-card__items">
+          <article>
+            <div class="icon bg-blue-500/20 text-blue-400">
+              <span class="material-symbols-outlined">group_add</span>
+            </div>
+            <div>
+              <h4>Modelo project-based</h4>
+              <p>Elimina la fricción del cobro por usuario y democratiza la IA.</p>
+            </div>
+          </article>
+
+          <article>
+            <div class="icon bg-purple-500/20 text-purple-400">
+              <span class="material-symbols-outlined">memory</span>
+            </div>
+            <div>
+              <h4>Costo IA colapsado</h4>
+              <p>Analizar una imagen cuesta $0.0001 USD. Planes ilimitados son viables.</p>
+            </div>
+          </article>
+
+          <article>
+            <div class="icon bg-green-500/20 text-green-400">
+              <span class="material-symbols-outlined">attach_money</span>
+            </div>
+            <div>
+              <h4>Margen bruto &gt; 85%</h4>
+              <p>Stack open source (Llama 3.2 + Whisper) con focos en eficiencia.</p>
+            </div>
+          </article>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="strategy" class="section">
+    <div class="section__header">
+      <p class="eyebrow">El problema estructural</p>
+      <h2>El modelo de cobro define el uso</h2>
+      <p>¿Por qué el software tradicional falla en seguridad? Porque su pricing no escala a terreno.</p>
+    </div>
+
+    <div class="strategy-cards">
+      <article
+        *ngFor="let card of unitStrategyCards"
+        class="strategy-card"
+        [ngClass]="card.classes"
+      >
+        <div class="card-top">
+          <div class="card-icon" [ngClass]="card.iconClasses">
+            <span class="material-symbols-outlined">{{ card.icon }}</span>
+          </div>
+          <span class="card-badge">{{ card.badge }}</span>
+        </div>
+        <h3>{{ card.title }}</h3>
+        <p class="subtitle">{{ card.subtitle }}</p>
+        <p class="description">{{ card.description }}</p>
+        <ul>
+          <li *ngFor="let highlight of card.highlights" [class.negative]="!highlight.positive">
+            <span class="material-symbols-outlined text-sm">
+              {{ highlight.positive ? 'check' : 'close' }}
+            </span>
+            {{ highlight.text }}
+          </li>
+        </ul>
+      </article>
+    </div>
+  </section>
+
+  <section id="economics" class="section section--muted">
+    <div class="economics-grid">
+      <div>
+        <p class="eyebrow">La "magia" de los 3 pesos</p>
+        <h2>La viabilidad descansa en el colapso de los costos de inferencia</h2>
+        <p class="description">
+          Usando modelos open source en infraestructura eficiente (DeepInfra/Groq), el costo marginal
+          es casi despreciable. Eso nos permite absorber IA ilimitada dentro de la suscripción fija.
+        </p>
+
+        <div class="calculator-card">
+          <h4>
+            <span class="material-symbols-outlined text-orange-500">settings_input_component</span>
+            Calculadora de costos en tiempo real
+          </h4>
+
+          <div class="slider-group">
+            <label>
+              <div>
+                <span>Fotos analizadas por mes</span>
+                <strong>{{ formatNumber(photoCount()) }}</strong>
+              </div>
+              <input
+                type="range"
+                min="500"
+                max="10000"
+                step="100"
+                [value]="photoCount()"
+                (input)="onSliderInput('photos', $any($event.target).valueAsNumber)"
+              />
+            </label>
+
+            <label>
+              <div>
+                <span>Minutos de audio transcritos</span>
+                <strong>{{ formatNumber(audioMinutes()) }}</strong>
+              </div>
+              <input
+                type="range"
+                min="100"
+                max="5000"
+                step="100"
+                [value]="audioMinutes()"
+                (input)="onSliderInput('audio', $any($event.target).valueAsNumber)"
+              />
+            </label>
+
+            <label>
+              <div>
+                <span>Reportes generados (LLM texto)</span>
+                <strong>{{ formatNumber(reportCount()) }}</strong>
+              </div>
+              <input
+                type="range"
+                min="100"
+                max="2000"
+                step="50"
+                [value]="reportCount()"
+                (input)="onSliderInput('reports', $any($event.target).valueAsNumber)"
+              />
+            </label>
+          </div>
+        </div>
+
+        <div class="insight-card">
+          <span class="material-symbols-outlined">lightbulb</span>
+          <p>
+            Incluso procesando 3,000 imágenes de alta resolución, el costo de visión es inferior a un
+            café. Esto permite absorber el costo dentro de la suscripción fija.
+          </p>
+        </div>
+      </div>
+
+      <div class="economics-panel">
+        <h3>Economía unitaria (mensual)</h3>
+
+        <div class="cost-row">
+          <div>
+            <span class="material-symbols-outlined text-blue-400">image</span>
+            <div>
+              <p>Costo visión (Llama 3.2 11B)</p>
+              <small>DeepInfra: $0.049 / 1M tokens</small>
+            </div>
+          </div>
+          <strong>{{ formatCurrency(visionCost()) }}</strong>
+        </div>
+
+        <div class="cost-row">
+          <div>
+            <span class="material-symbols-outlined text-purple-400">mic</span>
+            <div>
+              <p>Costo audio (Whisper Turbo)</p>
+              <small>Groq/DeepInfra: ~$0.04/hr</small>
+            </div>
+          </div>
+          <strong>{{ formatCurrency(audioCost()) }}</strong>
+        </div>
+
+        <div class="cost-row">
+          <div>
+            <span class="material-symbols-outlined text-green-400">description</span>
+            <div>
+              <p>Costo generación (Llama 70B)</p>
+              <small>Razonamiento y redacción</small>
+            </div>
+          </div>
+          <strong>{{ formatCurrency(textCost()) }}</strong>
+        </div>
+
+        <hr />
+
+        <div class="total-row">
+          <div>
+            <p>Costo total IA mensual</p>
+          </div>
+          <span>{{ formatCurrency(totalCost()) }}</span>
+        </div>
+
+        <div class="margin-bar">
+          <div class="ia"></div>
+          <div class="infra"></div>
+          <div class="margin"></div>
+        </div>
+        <div class="margin-legend">
+          <span>Costo IA (&lt; 1%)</span>
+          <span>Margen bruto (~91%)</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="pricing" class="section">
+    <div class="section__header">
+      <p class="eyebrow">Pricing escalonado</p>
+      <h2>Diseñado para maximizar adopción y capturar valor</h2>
+      <p>El plan esencial elimina fricción, mientras que Pro y Enterprise concentran el margen.</p>
+    </div>
+
+    <div class="pricing-grid">
+      <article
+        *ngFor="let tier of pricingTiers"
+        class="pricing-card"
+        [class.pricing-card--highlight]="tier.highlight"
+      >
+        <div class="pricing-card__header" *ngIf="tier.highlight">
+          MÁS POPULAR
+        </div>
+        <h3>{{ tier.name }}</h3>
+        <p class="subtitle">{{ tier.subtitle }}</p>
+        <div class="price">
+          {{ tier.price }} <span>{{ tier.per }}</span>
+        </div>
+        <p class="hint">{{ tier.hint }}</p>
+        <button type="button" [class.btn-primary]="tier.highlight">
+          {{ tier.buttonLabel }}
+        </button>
+        <ul>
+          <li *ngFor="let feature of tier.features" [class.unavailable]="!feature.available">
+            <span class="material-symbols-outlined text-sm">
+              {{ feature.available ? 'check' : 'close' }}
+            </span>
+            {{ feature.label }}
+          </li>
+        </ul>
+      </article>
+    </div>
+  </section>
+
+  <section id="architecture" class="section section--muted">
+    <div class="section__header">
+      <p class="eyebrow">Pipeline de costos</p>
+      <h2>Optimización extremo a extremo</h2>
+      <p>La eficiencia no está solo en la nube: inicia en el bolsillo del capataz.</p>
+    </div>
+
+    <div class="architecture-steps">
+      <article
+        *ngFor="let step of architectureSteps"
+        [class.architecture-steps__featured]="step.featured"
+      >
+        <div class="emoji">{{ step.emoji }}</div>
+        <h4>{{ step.title }}</h4>
+        <p>{{ step.description }}</p>
+      </article>
+    </div>
+
+    <div class="architecture-tiles">
+      <article *ngFor="let tile of architectureTiles">
+        <img [src]="tile.image" [alt]="tile.title" loading="lazy" />
+        <div>
+          <h4>{{ tile.title }}</h4>
+          <p>{{ tile.description }}</p>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <footer class="business-model__footer">
+    <div>
+      <div class="brand">
+        <span class="material-symbols-outlined text-orange-500">safety_check</span>
+        <span class="font-display font-bold text-lg text-white">ObraGuard</span>
+      </div>
+      <p>
+        Informe estratégico confidencial. Modelo de negocio optimizado para el mercado ConTech
+        Latinoamericano 2025.
+      </p>
+    </div>
+    <div>
+      <h4>Secciones</h4>
+      <ul>
+        <li><a href="#strategy">Análisis de mercado</a></li>
+        <li><a href="#economics">Economía unitaria</a></li>
+        <li><a href="#pricing">Pricing</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Legal</h4>
+      <ul>
+        <li>Privacidad de datos</li>
+        <li>Fair Use Policy</li>
+        <li>Términos de servicio</li>
+      </ul>
+    </div>
+  </footer>
+</div>
+
+

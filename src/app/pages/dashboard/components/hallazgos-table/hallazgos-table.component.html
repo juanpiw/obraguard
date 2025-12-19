@@ -1,0 +1,31 @@
+<div class="hallazgos-table">
+  <table>
+    <thead>
+      <tr>
+        <th>Estado</th>
+        <th>Riesgo</th>
+        <th>Descripción</th>
+        <th>Reportado por</th>
+        <th>Fecha</th>
+        <th>Sector</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (hallazgo of hallazgos; track hallazgo.id) {
+        <tr>
+          <td><span class="{{ statusClass(hallazgo.estado) }}">{{ hallazgo.estado }}</span></td>
+          <td><span class="{{ riesgoClass(hallazgo.riesgo) }}">{{ hallazgo.riesgo }}</span></td>
+          <td>{{ hallazgo.titulo }}</td>
+          <td>{{ hallazgo.reportero }}</td>
+          <td>{{ hallazgo.fecha | date: 'dd MMM yyyy' }}</td>
+          <td>{{ hallazgo.sector }}</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>
+
+
+
+
+

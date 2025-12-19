@@ -1,0 +1,166 @@
+@if (open) {
+  <div class="hallazgo-modal" role="dialog" aria-modal="true">
+    <div class="hallazgo-modal__backdrop" (click)="requestClose()"></div>
+    <div class="hallazgo-modal__container">
+      <form class="hallazgo-form" [formGroup]="form" (ngSubmit)="handleSubmit()">
+        <header class="hallazgo-form__header">
+          <div>
+            <h2>Registrar Nuevo Hallazgo</h2>
+            <p>Comparte la evidencia para que el equipo actúe en minutos.</p>
+          </div>
+          <button type="button" aria-label="Cerrar" (click)="requestClose()">
+            <svg viewBox="0 0 24 24" stroke-width="1.5" fill="none">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </header>
+
+        <section class="hallazgo-form__body">
+          <div class="capture-switch">
+            <button type="button" [class.capture-switch__btn--active]="isActiveMode('upload')" (click)="setCaptureMode('upload')">
+              Sube un archivo
+            </button>
+            <button type="button" [class.capture-switch__btn--active]="isActiveMode('camera')" (click)="setCaptureMode('camera')">
+              Tomar foto
+            </button>
+          </div>
+
+          @if (captureMode() === 'upload') {
+            <div class="upload-field">
+              <label>Evidencia (Foto/Video)</label>
+              <div class="upload-field__drop">
+                <div>
+                  <svg viewBox="0 0 48 48" stroke-width="1.5" fill="none">
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
+                    />
+                  </svg>
+                  <div class="upload-field__actions">
+                    <label>
+                      <span>Sube un archivo</span>
+                      <input type="file" accept="image/*,video/*" hidden (change)="onMediaSelected($event)" />
+                    </label>
+                    <p>o arrastra y suelta</p>
+                  </div>
+                  <small>PNG, JPG, GIF hasta 10MB</small>
+                </div>
+              </div>
+            </div>
+          } @else {
+            <div class="camera-field">
+              <label>Tomar una foto ahora</label>
+              <p>La cámara se abrirá en el teléfono para capturar evidencia directamente.</p>
+              <label class="camera-field__button">
+                <svg viewBox="0 0 24 24" stroke-width="1.5" fill="none">
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M15.75 6a3.75 3.75 0 00-7.5 0M4.5 9h15m-13.5 0v9.75A2.25 2.25 0 008.25 21h7.5a2.25 2.25 0 002.25-2.25V9"
+                  />
+                </svg>
+                Abrir cámara
+                <input type="file" accept="image/*" capture="environment" hidden (change)="onMediaSelected($event)" />
+              </label>
+              <small>Recomendado cuando estás en terreno.</small>
+            </div>
+          }
+
+          @if (mediaPreview() || mediaName()) {
+            <div class="media-preview">
+              <div class="media-preview__header">
+                <p>Archivo seleccionado: {{ mediaName() }}</p>
+                <button type="button" (click)="clearMedia()">Quitar</button>
+              </div>
+              @if (mediaPreview() && mediaIsImage()) {
+                <img [src]="mediaPreview()" alt="Evidencia" />
+              } @else if (mediaPreview()) {
+                <video [src]="mediaPreview()" controls></video>
+              } @else {
+                <p class="media-preview__placeholder">
+                  Vista previa no disponible. Se adjuntará igualmente en el reporte.
+                </p>
+              }
+            </div>
+          }
+
+          <div class="form-field">
+            <label for="titulo">Título / Descripción breve</label>
+            <input id="titulo" type="text" placeholder="Ej: Cable pelado en 2do piso" formControlName="titulo" />
+          </div>
+
+          <div class="form-field">
+            <label>Nivel de Riesgo</label>
+            <button type="button" class="ai-button" (click)="analyzeRisk()" [disabled]="aiLoading()">
+              @if (aiLoading()) {
+                <svg class="ai-button__spinner" viewBox="0 0 24 24">
+                  <circle class="path" cx="12" cy="12" r="10"></circle>
+                </svg>
+                Analizando descripción...
+              } @else {
+                <svg viewBox="0 0 24 24" stroke-width="1.5" fill="none">
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.898 20.622L16.125 18l-.773 2.622a.75.75 0 001.546 0z"
+                  />
+                </svg>
+                Analizar Riesgo con IA
+              }
+            </button>
+
+            @if (aiMessage()) {
+              <div class="ai-result">
+                <p>{{ aiMessage() }}</p>
+              </div>
+            }
+
+            <div class="riesgo-grid" role="radiogroup">
+              <label>
+                <input type="radio" formControlName="riesgo" value="Alto" />
+                <span>Alto</span>
+              </label>
+              <label>
+                <input type="radio" formControlName="riesgo" value="Medio" />
+                <span>Medio</span>
+              </label>
+              <label>
+                <input type="radio" formControlName="riesgo" value="Bajo" />
+                <span>Bajo</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="form-field">
+            <label for="sector">Sector / Ubicación</label>
+            <input id="sector" type="text" placeholder="Ej: Torre B, Piso 2, Baño B-201" formControlName="sector" />
+          </div>
+
+          <div class="form-checkbox">
+            <input
+              id="anonimo"
+              type="checkbox"
+              formControlName="anonimo"
+              (change)="onToggleAnonimo()"
+            />
+            <label for="anonimo">Quiero reportar anónimamente</label>
+          </div>
+
+          @if (!anonimo) {
+            <div class="form-field">
+              <label for="reportero">Su Nombre</label>
+              <input id="reportero" type="text" formControlName="reportero" readonly />
+            </div>
+          }
+        </section>
+
+        <footer class="hallazgo-form__footer">
+          <button type="button" class="btn-secondary" (click)="requestClose()">Cancelar</button>
+          <button type="submit" class="btn-primary">Enviar Reporte</button>
+        </footer>
+      </form>
+    </div>
+  </div>
+}
+
