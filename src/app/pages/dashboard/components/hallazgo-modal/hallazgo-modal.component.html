@@ -157,7 +157,13 @@
 
         <footer class="hallazgo-form__footer">
           <button type="button" class="btn-secondary" (click)="requestClose()">Cancelar</button>
-          <button type="submit" class="btn-primary">Enviar Reporte</button>
+          <button type="submit" class="btn-primary" [disabled]="submitting()">
+            @if (submitting()) {
+              Enviando...
+            } @else {
+              Enviar Reporte
+            }
+          </button>
         </footer>
       </form>
     </div>

@@ -7,6 +7,7 @@ import {
 } from '@angular/forms';
 import { HallazgosService } from '../../../../core/services/hallazgos.service';
 import { HallazgoRiesgo } from '../../../../core/models/hallazgo.model';
+import { firstValueFrom } from 'rxjs';
 
 const REPORTERO_DEFAULT = 'Carolina Vega (Prevencionista)';
 type CaptureMode = 'upload' | 'camera';
@@ -29,10 +30,15 @@ export class HallazgoModalComponent {
 
   protected readonly aiLoading = signal(false);
   protected readonly aiMessage = signal<string | null>(null);
+  protected readonly submitting = signal(false);
   protected readonly captureMode = signal<CaptureMode>('upload');
   protected readonly mediaPreview = signal<string | null>(null);
   protected readonly mediaName = signal<string | null>(null);
   protected readonly mediaIsImage = signal(true);
+  private selectedFile: File | null = null;
+  private analyzedMediaId: number | null = null;
+  private analyzedMediaUrl: string | null = null;
+  private analyzedDescripcion: string | null = null;
 
   protected readonly form = this.fb.group({
     titulo: ['', [Validators.required, Validators.minLength(6)]],
@@ -60,52 +66,69 @@ export class HallazgoModalComponent {
     }
   }
 
-  protected analyzeRisk(): void {
-    const titulo = this.form.get('titulo')?.value?.trim();
-    if (!titulo) {
-      this.form.get('titulo')?.markAsTouched();
+  protected async analyzeRisk(): Promise<void> {
+    if (!this.selectedFile) {
+      this.aiMessage.set('Sube o captura una evidencia antes de analizar.');
       return;
     }
 
     this.aiLoading.set(true);
     this.aiMessage.set(null);
-
-    window.setTimeout(() => {
-      const { riesgo, justification } =
-        this.hallazgosService.analyzeRisk(titulo);
-      this.form.get('riesgo')?.setValue(riesgo);
-      this.aiMessage.set(justification);
+    try {
+      const formData = new FormData();
+      formData.append('file', this.selectedFile);
+      const resp = await firstValueFrom(this.hallazgosService.analyzeEvidence(formData));
+      this.form.get('riesgo')?.setValue(resp.riesgo);
+      this.aiMessage.set(resp.descripcion);
+      this.analyzedMediaId = resp.mediaId ?? null;
+      this.analyzedMediaUrl = resp.mediaUrl ?? null;
+      this.analyzedDescripcion = resp.descripcion ?? null;
+    } catch (err: any) {
+      this.aiMessage.set(err?.message || 'No se pudo analizar la evidencia.');
+    } finally {
       this.aiLoading.set(false);
-    }, 1200);
+    }
   }
 
-  protected handleSubmit(): void {
+  protected async handleSubmit(): Promise<void> {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
     }
 
+    this.submitting.set(true);
     const reporter = this.anonimo
       ? 'Anónimo'
       : this.form.get('reportero')?.value || REPORTERO_DEFAULT;
 
-    const hallazgo = this.hallazgosService.addHallazgo({
-      titulo: this.form.get('titulo')?.value ?? '',
-      riesgo: (this.form.get('riesgo')?.value ?? 'Medio') as HallazgoRiesgo,
-      sector: this.form.get('sector')?.value ?? '',
-      reportero: reporter
-    });
+    try {
+      const payload = {
+        titulo: this.form.get('titulo')?.value ?? '',
+        riesgo: (this.form.get('riesgo')?.value ?? 'Medio') as HallazgoRiesgo,
+        sector: this.form.get('sector')?.value ?? '',
+        reportero: reporter,
+        anonimo: this.anonimo,
+        descripcion_ai: this.analyzedDescripcion ?? undefined,
+        mediaId: this.analyzedMediaId ?? undefined
+      };
 
-    this.submitted.emit(`Hallazgo "${hallazgo.titulo}" reportado con éxito.`);
-    this.form.reset({
-      titulo: '',
-      riesgo: 'Medio',
-      sector: '',
-      anonimo: false,
-      reportero: REPORTERO_DEFAULT
-    });
-    this.aiMessage.set(null);
-    this.clearMedia();
+      await firstValueFrom(this.hallazgosService.createHallazgo(payload));
+
+      this.submitted.emit(`Hallazgo "${payload.titulo}" reportado con éxito.`);
+      this.form.reset({
+        titulo: '',
+        riesgo: 'Medio',
+        sector: '',
+        anonimo: false,
+        reportero: REPORTERO_DEFAULT
+      });
+      this.aiMessage.set(null);
+      this.clearMedia();
+    } catch (err: any) {
+      this.aiMessage.set(err?.message || 'No se pudo enviar el hallazgo.');
+    } finally {
+      this.submitting.set(false);
+    }
   }
 
   protected requestClose(): void {
@@ -131,6 +154,7 @@ export class HallazgoModalComponent {
     }
 
     this.mediaName.set(file.name);
+    this.selectedFile = file;
     const isImage = file.type.startsWith('image/');
     this.mediaIsImage.set(isImage);
 
@@ -149,6 +173,10 @@ export class HallazgoModalComponent {
     this.mediaName.set(null);
     this.mediaPreview.set(null);
     this.mediaIsImage.set(true);
+    this.selectedFile = null;
+    this.analyzedMediaId = null;
+    this.analyzedMediaUrl = null;
+    this.analyzedDescripcion = null;
   }
 }
 

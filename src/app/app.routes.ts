@@ -9,6 +9,7 @@ import { HallazgosPageComponent } from './pages/dashboard/views/hallazgos-page.c
 import { DocumentosPageComponent } from './pages/dashboard/views/documentos-page.component';
 import { EquipoPageComponent } from './pages/dashboard/views/equipo-page.component';
 import { BusinessModelComponent } from './pages/business-model/business-model.component';
+import { IncidentesPageComponent } from './pages/dashboard/views/incidentes-page.component';
 
 export const routes: Routes = [
   {
@@ -69,6 +70,11 @@ export const routes: Routes = [
         path: 'dashboard',
         component: DashboardHomeComponent,
         data: { title: 'Dashboard' }
+      },
+      {
+        path: 'incidentes',
+        component: IncidentesPageComponent,
+        data: { title: 'Incidentes' }
       },
       {
         path: 'hallazgos',

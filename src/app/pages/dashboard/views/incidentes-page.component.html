@@ -1,0 +1,280 @@
+<section class="control-page">
+  <div class="control-hero">
+    <div class="control-hero__content">
+      <p class="eyebrow">Centro de Control</p>
+      <h2>Alertas inmediatas y reporte rápido en obra.</h2>
+      <p class="muted">
+        Envía un SMS de alerta a las cuadrillas en menos de 1 minuto. Visualiza el estado general y
+        las últimas incidencias enviadas.
+      </p>
+
+      <div class="hero-actions">
+        <button type="button" class="btn btn--primary" (click)="openModal()">
+          <span class="btn__icon">+</span>
+          <span>Nuevo incidente</span>
+        </button>
+        <button type="button" class="btn btn--ghost">
+          <svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" fill="none">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m-5.25 3h9a2.25 2.25 0 002.25-2.25V6A2.25 2.25 0 0015.75 3.75h-7.5A2.25 2.25 0 006 6v7.5A2.25 2.25 0 008.25 15h.75v3l3.75-3" />
+          </svg>
+          Historial de alertas
+        </button>
+      </div>
+    </div>
+
+    <div class="control-hero__status">
+      <div>
+        <p>Estado general</p>
+        <strong>95% operativo</strong>
+        <small>Red estable · 3 cuadrillas activas</small>
+      </div>
+      <div class="status-dot">
+        <span></span>
+        <small>Online</small>
+      </div>
+    </div>
+  </div>
+
+  <div class="cards-grid">
+    <article class="card glass">
+      <div class="card__header">
+        <p>Modo Seguro</p>
+        <span class="pill pill--light">Activo</span>
+      </div>
+      <h3>Obra funcionando</h3>
+      <p>Protocolos de seguridad en ejecución y monitoreo.</p>
+      <div class="progress">
+        <span style="width: 95%"></span>
+      </div>
+    </article>
+
+    <article class="card">
+      <div class="card__header">
+        <p>Riesgos críticos</p>
+        <span class="pill pill--danger">2</span>
+      </div>
+      <h3>Atención inmediata</h3>
+      <p>Torre A y perímetro exterior con alertas activas.</p>
+    </article>
+
+    <article class="card">
+      <div class="card__header">
+        <p>Reportes SMS</p>
+        <span class="pill pill--success">+12%</span>
+      </div>
+      <h3>18 enviados</h3>
+      <p>Comparado con la semana anterior.</p>
+    </article>
+  </div>
+
+  <div class="panel">
+    <header class="panel__header">
+      <div>
+        <p class="eyebrow">Alertas recientes</p>
+        <h3>Mensajes enviados a cuadrillas</h3>
+      </div>
+      <button type="button" class="btn btn--link">Ver historial completo</button>
+    </header>
+
+    <div class="alert-feed">
+      <div
+        class="alert-item"
+        *ngFor="let alert of alerts; let last = last"
+        [class.alert-item--last]="last"
+      >
+        <div class="alert-item__icon" [class]="alert.color">
+          {{ alert.icon }}
+        </div>
+        <div class="alert-item__body">
+          <div class="alert-item__title">
+            <h4>{{ alert.title }}</h4>
+            <span>{{ alert.time }}</span>
+          </div>
+          <p>{{ alert.desc }}</p>
+        </div>
+        <div class="alert-item__status">
+          <span class="pill pill--soft">Enviado</span>
+          <small>{{ alert.target }}</small>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="modal" *ngIf="isModalOpen">
+  <div class="modal__backdrop" (click)="closeModal()"></div>
+  <div class="modal__content animate-scale-in">
+    <header class="modal__header">
+      <div>
+        <h3>Reporte rápido</h3>
+        <p>Sistema activo · envía SMS inmediato</p>
+      </div>
+      <button type="button" class="modal__close" (click)="closeModal()">
+        <svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </header>
+
+    <div class="modal__progress">
+      <span [style.width.%]="progressPercent"></span>
+    </div>
+
+    <div class="modal__body custom-scrollbar">
+      <div *ngIf="currentStep === 1" class="animate-slide-up">
+        <h4>Selecciona el área afectada</h4>
+        <div class="categories">
+          <button
+            type="button"
+            *ngFor="let cat of categories"
+            (click)="selectCategory(cat.id)"
+            class="category"
+          >
+            <span class="category__icon">{{ cat.icon }}</span>
+            <span class="category__label">{{ cat.label }}</span>
+          </button>
+        </div>
+      </div>
+
+      <div *ngIf="currentStep === 2" class="animate-slide-up">
+        <button type="button" class="back-btn" (click)="backTo(1)">
+          <svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+          </svg>
+          Volver atrás
+        </button>
+
+        <h4>Nivel de gravedad</h4>
+        <div class="severity-list">
+          <button type="button" (click)="selectSeverity('leve')" class="severity severity--green">
+            <div class="severity__icon">
+              <svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <div>
+              <p>Leve</p>
+              <small>Incidente menor.</small>
+            </div>
+          </button>
+
+          <button type="button" (click)="selectSeverity('mediano')" class="severity severity--yellow">
+            <div class="severity__icon">
+              <svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M5.062 19h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <div>
+              <p>Mediano</p>
+              <small>Pausa o atención básica.</small>
+            </div>
+          </button>
+
+          <button type="button" (click)="selectSeverity('grave')" class="severity severity--red">
+            <div class="severity__icon">
+              <svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div>
+              <p>Grave</p>
+              <small>Paralización o accidente.</small>
+            </div>
+          </button>
+        </div>
+      </div>
+
+      <div *ngIf="currentStep === 3" class="animate-slide-up">
+        <button type="button" class="back-btn" (click)="backTo(2)">
+          <svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+          </svg>
+          Volver atrás
+        </button>
+
+        <div class="field">
+          <label>¿A quién le pasó / Responsable?</label>
+          <div class="field__input">
+            <svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+            <input
+              type="text"
+              [(ngModel)]="incidentData.affected"
+              placeholder="Ej: Cuadrilla 4, Juan Pérez..."
+            />
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Breve descripción</label>
+          <textarea
+            rows="4"
+            [(ngModel)]="incidentData.description"
+            placeholder="Detalles clave para el SMS..."
+          ></textarea>
+        </div>
+
+        <button
+          type="button"
+          class="btn btn--primary w-full"
+          [disabled]="!incidentData.affected"
+          (click)="goToPreview()"
+        >
+          Continuar a vista previa
+        </button>
+      </div>
+
+      <div *ngIf="currentStep === 4" class="animate-slide-up">
+        <h4>Confirmar envío</h4>
+
+        <div class="sms-bubble">
+          <div class="sms-bubble__meta">
+            <div class="sms-bubble__avatar">APP</div>
+            <div>
+              <p>ObraGuard Bot</p>
+              <small>Ahora</small>
+            </div>
+          </div>
+
+          <p>
+            🚨 <strong>ALERTA OBRAGUARD</strong><br /><br />
+            Nivel:
+            <span
+              class="pill"
+              [ngClass]="{
+                'pill--success': incidentData.severity === 'leve',
+                'pill--warning': incidentData.severity === 'mediano',
+                'pill--danger': incidentData.severity === 'grave'
+              }"
+              >{{ incidentData.severity }}</span
+            ><br />
+            Tipo: <strong>{{ incidentData.category | titlecase }}</strong
+            ><br />
+            Afectado: {{ incidentData.affected }}<br />
+            Nota: "{{ incidentData.description }}"
+          </p>
+        </div>
+
+        <div class="modal__actions">
+          <button type="button" class="btn btn--ghost" (click)="backTo(3)">Editar</button>
+          <button type="button" class="btn btn--primary" [disabled]="!hasDetails()" (click)="sendIncident()">
+            Enviar alerta
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast animate-bounce-in" *ngIf="showToast">
+  <div class="toast__icon">
+    <svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="3" fill="none">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+    </svg>
+  </div>
+  <div>
+    <p>Notificación enviada</p>
+    <small>El equipo ha recibido la alerta vía SMS.</small>
+  </div>
+</div>

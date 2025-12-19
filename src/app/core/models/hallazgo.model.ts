@@ -9,6 +9,9 @@ export interface Hallazgo {
   reportero: string;
   fecha: string;
   sector: string;
+  descripcion_ai?: string | null;
+  media_url?: string | null;
+  media_type?: string | null;
 }
 
 
