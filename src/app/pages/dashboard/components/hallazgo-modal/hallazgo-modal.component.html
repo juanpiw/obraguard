@@ -203,15 +203,61 @@
                 Enviar Reporte
               }
             </button>
-            @if (showSubmitOptions()) {
-              <div class="submit-menu">
-                <button type="button" (click)="handleSubmit('telefono')">Enviar reporte por teléfono</button>
-                <button type="button" (click)="handleSubmit('arbol')">Enviar árbol de causa</button>
-                <button type="button" (click)="handleSubmit('normal')">Enviar estándar</button>
-              </div>
-            }
           </div>
         </footer>
+
+        @if (showSubmitOptions()) {
+          <div class="submit-modal">
+            <div class="submit-modal__backdrop" (click)="toggleSubmitOptions()"></div>
+            <div class="submit-modal__content">
+              <h4>Selecciona cómo enviar</h4>
+              <div class="submit-options">
+                <label class="submit-option">
+                  <input
+                    type="radio"
+                    name="submitOption"
+                    [checked]="selectedSubmitOption() === 'telefono'"
+                    (change)="setSubmitOption('telefono')"
+                  />
+                  <div>
+                    <p>Enviar reporte por teléfono</p>
+                    <small>El equipo te contactará.</small>
+                  </div>
+                </label>
+                <label class="submit-option">
+                  <input
+                    type="radio"
+                    name="submitOption"
+                    [checked]="selectedSubmitOption() === 'arbol'"
+                    (change)="setSubmitOption('arbol')"
+                  />
+                  <div>
+                    <p>Enviar árbol de causa</p>
+                    <small>Incluye el árbol de causas generado.</small>
+                  </div>
+                </label>
+                <label class="submit-option">
+                  <input
+                    type="radio"
+                    name="submitOption"
+                    [checked]="selectedSubmitOption() === 'normal'"
+                    (change)="setSubmitOption('normal')"
+                  />
+                  <div>
+                    <p>Enviar estándar</p>
+                    <small>Solo el reporte base.</small>
+                  </div>
+                </label>
+              </div>
+              <div class="submit-modal__actions">
+                <button type="button" class="btn-secondary" (click)="toggleSubmitOptions()">Volver</button>
+                <button type="button" class="btn-primary" [disabled]="submitting()" (click)="confirmSubmit()">
+                  Confirmar envío
+                </button>
+              </div>
+            </div>
+          </div>
+        }
       </form>
     </div>
   </div>

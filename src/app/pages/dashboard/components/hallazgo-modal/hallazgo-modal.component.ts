@@ -44,6 +44,7 @@ export class HallazgoModalComponent {
   private analyzedMediaUrl: string | null = null;
   private analyzedDescripcion: string | null = null;
   protected readonly showSubmitOptions = signal(false);
+  protected readonly selectedSubmitOption = signal<'normal' | 'telefono' | 'arbol'>('normal');
 
   protected readonly form = this.fb.group({
     titulo: ['', [Validators.required, Validators.minLength(6)]],
@@ -72,8 +73,10 @@ export class HallazgoModalComponent {
   }
 
   protected async analyzeRisk(): Promise<void> {
+    console.log('[Hallazgos][IA] Click analizar IA');
     if (!this.selectedFile) {
       this.aiMessage.set('Sube o captura una evidencia antes de analizar.');
+      this.aiLoading.set(false);
       return;
     }
 
@@ -101,7 +104,16 @@ export class HallazgoModalComponent {
   }
 
   protected toggleSubmitOptions(): void {
+    this.selectedSubmitOption.set('normal');
     this.showSubmitOptions.update((v) => !v);
+  }
+
+  protected setSubmitOption(option: 'normal' | 'telefono' | 'arbol'): void {
+    this.selectedSubmitOption.set(option);
+  }
+
+  protected confirmSubmit(): void {
+    this.handleSubmit(this.selectedSubmitOption());
   }
 
   protected async handleSubmit(mode: 'normal' | 'telefono' | 'arbol' = 'normal'): Promise<void> {
@@ -191,6 +203,11 @@ export class HallazgoModalComponent {
 
     this.mediaName.set(file.name);
     this.selectedFile = file;
+    console.log('[Hallazgos][IA] Archivo seleccionado', {
+      name: file.name,
+      type: file.type,
+      size: file.size
+    });
     const isImage = file.type.startsWith('image/');
     this.mediaIsImage.set(isImage);
 
