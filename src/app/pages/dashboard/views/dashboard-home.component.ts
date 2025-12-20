@@ -38,35 +38,44 @@ export class DashboardHomeComponent {
   protected readonly hallazgos = this.hallazgosService.hallazgos;
   protected readonly stats = this.hallazgosService.stats;
 
-  protected readonly kpiCards = computed<DashboardKpi[]>(() => [
-    {
-      label: 'Hallazgos Abiertos',
-      value: (this.stats()?.openCount ?? 0).toString(),
-      helper:
-        this.stats()?.newVsPrevWeek === null
-          ? 'Sin histórico semanal'
-          : `${this.stats()!.newVsPrevWeek! >= 0 ? '+' : ''}${this.stats()!.newVsPrevWeek} vs semana pasada (nuevos)`,
-      icon: 'alert',
-      accent: 'red'
-    },
-    {
-      label: 'Cerrados (Últ. 7d)',
-      value: (this.stats()?.closedLast7Days ?? 0).toString(),
-      helper:
-        this.stats()?.avgCloseDays == null
-          ? 'Tiempo prom. cierre: —'
-          : `Tiempo prom. cierre: ${this.stats()!.avgCloseDays!.toFixed(1)} días`,
-      icon: 'check',
-      accent: 'green'
-    },
-    {
-      label: 'Charlas al día',
-      value: '—',
-      helper: 'Sin endpoint de charlas aún',
-      icon: 'document',
-      accent: 'blue'
-    }
-  ]);
+  protected readonly kpiCards = computed<DashboardKpi[]>(() => {
+    const st = this.stats();
+    const newVs = st?.newVsPrevWeek ?? null;
+    const avgClose = st?.avgCloseDays ?? null;
+    return [
+      {
+        label: 'Hallazgos Abiertos',
+        value: (st?.openCount ?? 0).toString(),
+        helper:
+          st == null
+            ? 'Cargando métricas...'
+            : newVs === null
+              ? 'Sin histórico semanal'
+              : `${newVs >= 0 ? '+' : ''}${newVs} vs semana pasada (nuevos)`,
+        icon: 'alert',
+        accent: 'red'
+      },
+      {
+        label: 'Cerrados (Últ. 7d)',
+        value: (st?.closedLast7Days ?? 0).toString(),
+        helper:
+          st == null
+            ? 'Cargando métricas...'
+            : avgClose == null
+              ? 'Tiempo prom. cierre: —'
+              : `Tiempo prom. cierre: ${avgClose.toFixed(1)} días`,
+        icon: 'check',
+        accent: 'green'
+      },
+      {
+        label: 'Charlas al día',
+        value: '—',
+        helper: 'Sin endpoint de charlas aún',
+        icon: 'document',
+        accent: 'blue'
+      }
+    ];
+  });
 
   protected readonly riskBySector: SectorRisk[] = [
     { label: 'Torre A', total: 5, percentage: 70, color: 'red' },
