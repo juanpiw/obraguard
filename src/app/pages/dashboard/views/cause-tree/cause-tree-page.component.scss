@@ -1,0 +1,152 @@
+.cause-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.page-header__left h1 {
+  margin: 0.2rem 0;
+  font-size: 1.9rem;
+  color: #0f172a;
+}
+
+.page-header__left .muted {
+  margin: 0.1rem 0 0.4rem;
+  color: #475569;
+}
+
+.page-header__actions {
+  display: flex;
+  gap: 0.65rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.8rem;
+  color: #64748b;
+  margin: 0;
+}
+
+.chips {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 0.35rem;
+}
+
+.chip {
+  padding: 0.3rem 0.6rem;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 0.8rem;
+  border: 1px solid transparent;
+}
+
+.chip--red {
+  background: rgba(239, 68, 68, 0.15);
+  color: #b91c1c;
+  border-color: rgba(239, 68, 68, 0.25);
+}
+
+.chip--muted {
+  background: #0f172a;
+  color: #e5e7eb;
+  border-color: #1f2937;
+}
+
+.chip--outline {
+  background: #fff;
+  color: #1f2937;
+  border-color: #e2e8f0;
+}
+
+.ghost,
+.ai-btn,
+.primary {
+  border-radius: 0.75rem;
+  padding: 0.65rem 1rem;
+  border: 1px solid transparent;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ghost {
+  background: #f8fafc;
+  color: #0f172a;
+  border-color: #e2e8f0;
+}
+
+.ai-btn {
+  background: #0f172a;
+  color: #fff;
+  border-color: #111827;
+  box-shadow: 0 10px 20px rgba(15, 23, 42, 0.25);
+}
+
+.primary {
+  background: #f59e0b;
+  color: #0f172a;
+  border-color: #f59e0b;
+  box-shadow: 0 12px 22px rgba(245, 158, 11, 0.25);
+}
+
+.ghost:disabled,
+.ai-btn:disabled,
+.primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.status-bar {
+  min-height: 24px;
+}
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.4rem 0.65rem;
+  border-radius: 0.6rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.status--info {
+  background: rgba(99, 102, 241, 0.12);
+  color: #312e81;
+}
+
+.status--warn {
+  background: rgba(245, 158, 11, 0.12);
+  color: #92400e;
+}
+
+@media (max-width: 768px) {
+  .page-header {
+    flex-direction: column;
+  }
+
+  .page-header__actions {
+    width: 100%;
+  }
+
+  .ai-btn,
+  .primary,
+  .ghost {
+    width: 100%;
+    justify-content: center;
+    display: inline-flex;
+    text-align: center;
+  }
+}

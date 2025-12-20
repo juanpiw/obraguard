@@ -1,0 +1,24 @@
+<div
+  #canvas
+  class="tree-container bg-grid"
+  (mousedown)="startDrag($event)"
+  (mousemove)="onDrag($event)"
+  (mouseup)="endDrag()"
+  (mouseleave)="endDrag()"
+>
+  <ng-container *ngIf="tree; else emptyState">
+    <app-cause-node
+      [node]="tree"
+      [isRoot]="true"
+      (addNode)="addNode.emit($event)"
+      (editNode)="editNode.emit($event)"
+    ></app-cause-node>
+  </ng-container>
+
+  <ng-template #emptyState>
+    <div class="empty-state">
+      <p>Sin datos de árbol para esta investigación.</p>
+      <small>Agrega la primera causa para empezar.</small>
+    </div>
+  </ng-template>
+</div>

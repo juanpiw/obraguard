@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { CauseNode } from '../../../../core/models/cause-tree.model';
+import { CauseNode } from '../../../../../core/models/cause-tree.model';
 
 @Component({
   selector: 'app-cause-node',

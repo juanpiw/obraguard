@@ -11,7 +11,7 @@ import { DashboardToastComponent } from './components/dashboard-toast/dashboard-
 interface DashboardLink {
   label: string;
   route: string;
-  icon: 'dashboard' | 'hallazgos' | 'documentos' | 'equipo' | 'incidentes';
+  icon: 'dashboard' | 'hallazgos' | 'documentos' | 'equipo' | 'incidentes' | 'causas';
 }
 
 @Component({
@@ -32,6 +32,7 @@ export class DashboardComponent implements OnDestroy {
   protected readonly links: DashboardLink[] = [
     { label: 'Dashboard', route: '/app/dashboard', icon: 'dashboard' },
     { label: 'Incidentes', route: '/app/incidentes', icon: 'incidentes' },
+    { label: 'Árbol de Causas', route: '/app/arbol-causas', icon: 'causas' },
     { label: 'Hallazgos', route: '/app/hallazgos', icon: 'hallazgos' },
     { label: 'Documentos', route: '/app/documentos', icon: 'documentos' },
     { label: 'Equipo', route: '/app/equipo', icon: 'equipo' }

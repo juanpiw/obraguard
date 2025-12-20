@@ -1,0 +1,70 @@
+<div class="modal" [class.modal--open]="open">
+  <div class="modal__backdrop" (click)="cancel.emit()"></div>
+  <div class="modal__content" role="dialog" aria-modal="true">
+    <header class="modal__header">
+      <h3>{{ mode === 'add' ? 'Añadir causa' : 'Editar hecho' }}</h3>
+      <button type="button" class="icon-btn" (click)="cancel.emit()" aria-label="Cerrar">
+        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </header>
+
+    <div class="modal__body">
+      <label class="field">
+        <span>Descripción del hecho/causa</span>
+        <textarea
+          [(ngModel)]="text"
+          rows="3"
+          placeholder="Ej: Fuga de líquido hidráulico"
+        ></textarea>
+      </label>
+
+      <div class="field">
+        <span>Clasificación</span>
+        <div class="type-grid">
+          <button
+            type="button"
+            class="type-btn"
+            [class.type-btn--active]="selectedType === 'Condición'"
+            (click)="setType('Condición')"
+          >
+            Condición
+          </button>
+          <button
+            type="button"
+            class="type-btn"
+            [class.type-btn--active]="selectedType === 'Acción'"
+            (click)="setType('Acción')"
+          >
+            Acción
+          </button>
+          <button
+            type="button"
+            class="type-btn"
+            [class.type-btn--active]="selectedType === 'Gestión'"
+            (click)="setType('Gestión')"
+          >
+            Gestión
+          </button>
+          <button
+            type="button"
+            class="type-btn"
+            [class.type-btn--active]="selectedType === 'Hecho'"
+            (click)="setType('Hecho')"
+          >
+            Hecho
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <footer class="modal__footer">
+      <button type="button" class="ghost-btn" (click)="cancel.emit()">Cancelar</button>
+      <button type="button" class="primary-btn" [disabled]="saving" (click)="handleSave()">
+        <span *ngIf="!saving">Guardar</span>
+        <span *ngIf="saving">Guardando...</span>
+      </button>
+    </footer>
+  </div>
+</div>

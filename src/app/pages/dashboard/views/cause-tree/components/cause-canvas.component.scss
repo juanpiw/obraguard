@@ -1,0 +1,38 @@
+.tree-container {
+  display: flex;
+  flex-direction: row-reverse;
+  align-items: center;
+  position: relative;
+  height: calc(100vh - 140px);
+  padding: 2rem;
+  overflow: auto;
+  cursor: grab;
+  border: 1px solid #1f2937;
+  border-radius: 1rem;
+  background-color: #0f172a;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
+}
+
+.tree-container.dragging {
+  cursor: grabbing;
+}
+
+.bg-grid {
+  background-image:
+    linear-gradient(rgba(55, 65, 81, 0.2) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(55, 65, 81, 0.2) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+.empty-state {
+  color: #cbd5e1;
+  text-align: center;
+  width: 100%;
+}
+
+@media (max-width: 768px) {
+  .tree-container {
+    height: calc(100vh - 200px);
+    padding: 1rem;
+  }
+}
