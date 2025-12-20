@@ -4,12 +4,7 @@ import { LoginComponent } from './auth/login/login.component';
 import { RegisterComponent } from './auth/register/register.component';
 import { ForgotPasswordComponent } from './auth/forgot-password/forgot-password.component';
 import { DashboardComponent } from './pages/dashboard/dashboard.component';
-import { DashboardHomeComponent } from './pages/dashboard/views/dashboard-home.component';
-import { HallazgosPageComponent } from './pages/dashboard/views/hallazgos-page.component';
-import { DocumentosPageComponent } from './pages/dashboard/views/documentos-page.component';
-import { EquipoPageComponent } from './pages/dashboard/views/equipo-page.component';
 import { BusinessModelComponent } from './pages/business-model/business-model.component';
-import { IncidentesPageComponent } from './pages/dashboard/views/incidentes-page.component';
 
 export const routes: Routes = [
   {
@@ -68,12 +63,18 @@ export const routes: Routes = [
       },
       {
         path: 'dashboard',
-        component: DashboardHomeComponent,
+        loadComponent: () =>
+          import('./pages/dashboard/views/dashboard-home.component').then(
+            (m) => m.DashboardHomeComponent
+          ),
         data: { title: 'Dashboard' }
       },
       {
         path: 'incidentes',
-        component: IncidentesPageComponent,
+        loadComponent: () =>
+          import('./pages/dashboard/views/incidentes-page.component').then(
+            (m) => m.IncidentesPageComponent
+          ),
         data: { title: 'Incidentes' }
       },
       {
@@ -86,17 +87,26 @@ export const routes: Routes = [
       },
       {
         path: 'hallazgos',
-        component: HallazgosPageComponent,
+        loadComponent: () =>
+          import('./pages/dashboard/views/hallazgos-page.component').then(
+            (m) => m.HallazgosPageComponent
+          ),
         data: { title: 'Hallazgos' }
       },
       {
         path: 'documentos',
-        component: DocumentosPageComponent,
+        loadComponent: () =>
+          import('./pages/dashboard/views/documentos-page.component').then(
+            (m) => m.DocumentosPageComponent
+          ),
         data: { title: 'Documentos' }
       },
       {
         path: 'equipo',
-        component: EquipoPageComponent,
+        loadComponent: () =>
+          import('./pages/dashboard/views/equipo-page.component').then(
+            (m) => m.EquipoPageComponent
+          ),
         data: { title: 'Equipo' }
       }
     ]
