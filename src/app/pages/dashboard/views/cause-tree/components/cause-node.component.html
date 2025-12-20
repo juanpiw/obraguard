@@ -1,0 +1,27 @@
+<div class="node-wrapper">
+  <div class="node-children" *ngIf="node.children?.length">
+    <div class="child-row" *ngFor="let child of node.children">
+      <div class="connector-h"></div>
+      <app-cause-node
+        [node]="child"
+        (addNode)="addNode.emit($event)"
+        (editNode)="editNode.emit($event)"
+      ></app-cause-node>
+    </div>
+  </div>
+
+  <div class="node-card" [class.root-node]="isRoot" (click)="onEdit()">
+    <span class="badge" [ngClass]="badgeClass()">{{ node.type }}</span>
+    <p class="node-text">{{ node.text }}</p>
+
+    <button class="add-btn" type="button" (click)="onAdd($event)" aria-label="Añadir causa">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+        <path
+          fill-rule="evenodd"
+          d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+          clip-rule="evenodd"
+        />
+      </svg>
+    </button>
+  </div>
+</div>

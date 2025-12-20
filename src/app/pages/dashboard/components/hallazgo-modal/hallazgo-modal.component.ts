@@ -43,6 +43,7 @@ export class HallazgoModalComponent {
   private analyzedMediaId: number | null = null;
   private analyzedMediaUrl: string | null = null;
   private analyzedDescripcion: string | null = null;
+  protected readonly showSubmitOptions = signal(false);
 
   protected readonly form = this.fb.group({
     titulo: ['', [Validators.required, Validators.minLength(6)]],
@@ -96,7 +97,11 @@ export class HallazgoModalComponent {
     }
   }
 
-  protected async handleSubmit(): Promise<void> {
+  protected toggleSubmitOptions(): void {
+    this.showSubmitOptions.update((v) => !v);
+  }
+
+  protected async handleSubmit(mode: 'normal' | 'telefono' | 'arbol' = 'normal'): Promise<void> {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
@@ -115,12 +120,19 @@ export class HallazgoModalComponent {
         reportero: reporter,
         anonimo: this.anonimo,
         descripcion_ai: this.analyzedDescripcion ?? undefined,
-        mediaId: this.analyzedMediaId ?? undefined
+        mediaId: this.analyzedMediaId ?? undefined,
+        meta: mode
       };
 
       await firstValueFrom(this.hallazgosService.createHallazgo(payload));
 
-      this.submitted.emit(`Hallazgo "${payload.titulo}" reportado con éxito.`);
+      this.submitted.emit(
+        mode === 'telefono'
+          ? `Hallazgo "${payload.titulo}" enviado para gestión telefónica.`
+          : mode === 'arbol'
+            ? `Hallazgo "${payload.titulo}" enviado con árbol de causa.`
+            : `Hallazgo "${payload.titulo}" reportado con éxito.`
+      );
       this.form.reset({
         titulo: '',
         riesgo: 'Medio',
@@ -134,6 +146,7 @@ export class HallazgoModalComponent {
       this.aiMessage.set(err?.message || 'No se pudo enviar el hallazgo.');
     } finally {
       this.submitting.set(false);
+      this.showSubmitOptions.set(false);
     }
   }
 

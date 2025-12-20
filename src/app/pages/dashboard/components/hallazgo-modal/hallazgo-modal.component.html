@@ -195,13 +195,22 @@
 
         <footer class="hallazgo-form__footer">
           <button type="button" class="btn-secondary" (click)="requestClose()">Cancelar</button>
-          <button type="submit" class="btn-primary" [disabled]="submitting()">
-            @if (submitting()) {
-              Enviando...
-            } @else {
-              Enviar Reporte
+          <div class="submit-wrapper">
+            <button type="button" class="btn-primary" [disabled]="submitting()" (click)="toggleSubmitOptions()">
+              @if (submitting()) {
+                Enviando...
+              } @else {
+                Enviar Reporte
+              }
+            </button>
+            @if (showSubmitOptions()) {
+              <div class="submit-menu">
+                <button type="button" (click)="handleSubmit('telefono')">Enviar reporte por teléfono</button>
+                <button type="button" (click)="handleSubmit('arbol')">Enviar árbol de causa</button>
+                <button type="button" (click)="handleSubmit('normal')">Enviar estándar</button>
+              </div>
             }
-          </button>
+          </div>
         </footer>
       </form>
     </div>
