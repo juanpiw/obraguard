@@ -14,6 +14,7 @@
           <span *ngIf="!aiWorking">Resolver con IA</span>
           <span *ngIf="aiWorking">IA...</span>
         </button>
+        <small class="ai-error" *ngIf="aiError">{{ aiError }}</small>
       </div>
       <button type="button" class="icon-btn" (click)="cancel.emit()" aria-label="Cerrar">
         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">

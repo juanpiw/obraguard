@@ -18,6 +18,7 @@ export class NodeModalComponent implements OnChanges {
   @Input() saving = false;
   @Input() aiEnabled = true;
   @Input() aiWorking = false;
+  @Input() aiError: string | null = null;
   @Input() aiPrefillRequestId: number | null = null;
   @Input() aiPrefillText: string | null = null;
   @Input() aiPrefillType: CauseNodeType | null = null;

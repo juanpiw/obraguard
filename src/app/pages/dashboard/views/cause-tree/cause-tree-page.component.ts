@@ -126,6 +126,7 @@ export class CauseTreePageComponent {
   protected readonly modalAiPrefillText = signal<string | null>(null);
   protected readonly modalAiPrefillType = signal<CauseNodeType | null>(null);
   protected readonly modalAiPrefillNotes = signal<string | null>(null);
+  protected readonly modalAiError = signal<string | null>(null);
 
   private readonly modalTargetNodeId = signal<number | string | null>(null);
   private readonly modalParentId = signal<number | string | null>(null);
@@ -269,6 +270,7 @@ export class CauseTreePageComponent {
     this.modalAiPrefillType.set(null);
     this.modalAiPrefillNotes.set(null);
     this.modalAiPrefillRequestId.set(null);
+    this.modalAiError.set(null);
     this.modalOpen.set(true);
   }
 
@@ -285,6 +287,7 @@ export class CauseTreePageComponent {
     this.modalAiPrefillType.set(null);
     this.modalAiPrefillNotes.set(null);
     this.modalAiPrefillRequestId.set(null);
+    this.modalAiError.set(null);
     this.modalOpen.set(true);
   }
 
@@ -428,6 +431,7 @@ export class CauseTreePageComponent {
     }
 
     this.error.set(null);
+    this.modalAiError.set(null);
     this.modalAiWorking.set(true);
 
     console.log('[CauseTree][UI] resolveAiFromModal -> suggestNode start', {
@@ -459,7 +463,13 @@ export class CauseTreePageComponent {
         },
         error: (err) => {
           console.error('[CauseTree][UI] suggest node error', err);
-          this.error.set('No se pudo autocompletar con IA. Revisa conexión / API key y vuelve a intentar.');
+          const msg =
+            err?.error?.error ||
+            err?.error?.message ||
+            err?.message ||
+            'No se pudo autocompletar con IA.';
+          this.modalAiError.set(msg);
+          this.error.set(msg);
         }
       });
   }
