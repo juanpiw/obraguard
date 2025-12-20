@@ -34,6 +34,7 @@ export class CauseCanvasComponent implements AfterViewInit, OnChanges {
   private scrollLeft = 0;
   private scrollTop = 0;
   private draggingPointerType: 'mouse' | 'touch' | null = null;
+  private isRowReverse = true;
   private readonly onWindowMouseMove = (e: MouseEvent) => this.onDrag(e);
   private readonly onWindowMouseUp = (_e: MouseEvent) => this.endDrag();
 
@@ -53,6 +54,10 @@ export class CauseCanvasComponent implements AfterViewInit, OnChanges {
   private touchScrollTop = 0;
 
   ngAfterViewInit(): void {
+    const canvas = this.canvasRef?.nativeElement;
+    if (canvas) {
+      this.isRowReverse = getComputedStyle(canvas).flexDirection === 'row-reverse';
+    }
     this.centerRoot();
   }
 
@@ -65,7 +70,8 @@ export class CauseCanvasComponent implements AfterViewInit, OnChanges {
 
   protected startDrag(event: MouseEvent): void {
     const target = event.target as HTMLElement;
-    if (target.closest('.node-card') || target.closest('button')) {
+    // Evitar iniciar pan al interactuar con nodos/botones.
+    if (target.closest('.node-card') || target.closest('.node-circle') || target.closest('button')) {
       return;
     }
     this.isDragging = true;
@@ -86,10 +92,13 @@ export class CauseCanvasComponent implements AfterViewInit, OnChanges {
     event.preventDefault();
     const x = event.pageX - this.canvasRef.nativeElement.offsetLeft;
     const y = event.pageY - this.canvasRef.nativeElement.offsetTop;
-    const walkX = (x - this.startX) * 1.5;
-    const walkY = (y - this.startY) * 1.5;
-    this.canvasRef.nativeElement.scrollLeft = this.scrollLeft - walkX;
-    this.canvasRef.nativeElement.scrollTop = this.scrollTop - walkY;
+    const dx = x - this.startX;
+    const dy = y - this.startY;
+    // En row-reverse el scrollLeft suele comportarse “invertido”.
+    const dirX = this.isRowReverse ? 1 : -1;
+    this.canvasRef.nativeElement.scrollLeft = this.scrollLeft + dx * dirX;
+    // Vertical siempre natural
+    this.canvasRef.nativeElement.scrollTop = this.scrollTop - dy;
   }
 
   protected endDrag(): void {
@@ -141,7 +150,7 @@ export class CauseCanvasComponent implements AfterViewInit, OnChanges {
       }
 
       const target = event.target as HTMLElement | null;
-      if (target?.closest('.node-card') || target?.closest('button')) {
+      if (target?.closest('.node-card') || target?.closest('.node-circle') || target?.closest('button')) {
         return;
       }
 
@@ -183,7 +192,8 @@ export class CauseCanvasComponent implements AfterViewInit, OnChanges {
       const y = event.touches[0]?.clientY ?? 0;
       const dx = x - this.touchStartX;
       const dy = y - this.touchStartY;
-      this.canvasRef.nativeElement.scrollLeft = this.touchScrollLeft - dx;
+      const dirX = this.isRowReverse ? 1 : -1;
+      this.canvasRef.nativeElement.scrollLeft = this.touchScrollLeft + dx * dirX;
       this.canvasRef.nativeElement.scrollTop = this.touchScrollTop - dy;
       return;
     }
