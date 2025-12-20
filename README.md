@@ -12,7 +12,23 @@ Run `ng generate component component-name` to generate a new component. You can 
 
 ## Build
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
+- Desarrollo rápido (sin SSR ni prerender):  
+  `npm run build -- --configuration development --no-progress`
+
+- Producción (SSR/prerender desactivados para acelerar):  
+  `npm run build -- --configuration production`
+
+Si aparece `Could not find '@angular-devkit/build-angular:application'` o errores EPERM sobre `esbuild.exe`, borra `node_modules` y reinstala:
+```
+rmdir /s /q node_modules
+npm ci --no-audit --progress=false
+```
+
+## Notas de rendimiento y CI
+- SSR y prerender están desactivados en `angular.json` para acortar los builds.
+- Las vistas pesadas del dashboard se cargan con `loadComponent` (lazy load) para reducir el bundle inicial.
+- En Amplify, usa `npm ci --no-audit --progress=false` y cachea `node_modules`, `.npm`, `.angular/cache` (ver `amplify.yml`). BaseDirectory esperado: `dist/front/browser`.
+- Usa el registro oficial: `npm config set registry https://registry.npmjs.org/`.
 
 ## Running unit tests
 

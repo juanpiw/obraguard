@@ -165,6 +165,7 @@ export class CauseTreePageComponent {
   protected readonly aiMessage = signal('Detectando palabras clave y variaciones del hallazgo...');
 
   constructor() {
+    console.log('[CauseTreePage] ctor start');
     this.readPrefillState();
     this.loadHistory();
     this.loadTree(this.causeTreeId());
@@ -178,6 +179,7 @@ export class CauseTreePageComponent {
   }
 
   private readPrefillState(): void {
+    console.log('[CauseTreePage] readPrefillState');
     // En navegación desde hallazgos, mandamos el árbol como state para fallback si el GET falla.
     const browserState =
       typeof window !== 'undefined' ? (window.history.state as unknown) : null;
@@ -200,6 +202,7 @@ export class CauseTreePageComponent {
   }
 
   protected loadHistory(): void {
+    console.log('[CauseTreePage] loadHistory start');
     this.service
       .listTrees({ limit: 12 })
       .pipe(takeUntilDestroyed(this.destroyRef))
@@ -229,6 +232,7 @@ export class CauseTreePageComponent {
   }
 
   protected loadTree(idParam?: string | null): void {
+    console.log('[CauseTreePage] loadTree start', { idParam });
     this.loading.set(true);
     this.error.set(null);
     const id = idParam ?? this.causeTreeId();
@@ -249,6 +253,7 @@ export class CauseTreePageComponent {
       .getTree(id)
       .pipe(
         tap((resp) => {
+          console.log('[CauseTreePage] loadTree ok', { id, hallazgoId: (resp as any)?.hallazgoId });
           this.tree.set(resp.root);
           this.activeHallazgoId.set((resp as any)?.hallazgoId ?? null);
           // Si no tenemos hallazgo precargado, intentamos cargarlo para el PDF.

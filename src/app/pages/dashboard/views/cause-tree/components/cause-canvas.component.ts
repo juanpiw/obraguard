@@ -63,12 +63,19 @@ export class CauseCanvasComponent implements AfterViewInit, OnChanges {
 
   ngAfterViewInit(): void {
     if (!this.isBrowser) return;
-
+    console.log('[CauseCanvas] ngAfterViewInit start');
     const canvas = this.canvasRef?.nativeElement;
     if (canvas) {
       this.isRowReverse = getComputedStyle(canvas).flexDirection === 'row-reverse';
     }
     this.centerRoot();
+    console.log('[CauseCanvas] ngAfterViewInit done', {
+      isRowReverse: this.isRowReverse,
+      scrollLeft: this.canvasRef?.nativeElement.scrollLeft,
+      scrollTop: this.canvasRef?.nativeElement.scrollTop,
+      scrollWidth: this.canvasRef?.nativeElement.scrollWidth,
+      clientWidth: this.canvasRef?.nativeElement.clientWidth
+    });
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -122,6 +129,7 @@ export class CauseCanvasComponent implements AfterViewInit, OnChanges {
   protected onWheel(event: WheelEvent): void {
     // Zoom intencional: Ctrl+scroll (trackpad pinch suele venir con ctrlKey)
     if (!event.ctrlKey && !event.metaKey) return;
+    console.log('[CauseCanvas] onWheel zoom', { deltaY: event.deltaY, ctrl: event.ctrlKey, meta: event.metaKey });
     event.preventDefault();
     const delta = event.deltaY;
     const direction = delta > 0 ? -1 : 1;
@@ -149,6 +157,7 @@ export class CauseCanvasComponent implements AfterViewInit, OnChanges {
   }
 
   protected onTouchStart(event: TouchEvent): void {
+    console.log('[CauseCanvas] onTouchStart', { touches: event.touches.length });
     // Doble tap para alternar zoom
     if (event.touches.length === 1) {
       const now = Date.now();
@@ -186,6 +195,7 @@ export class CauseCanvasComponent implements AfterViewInit, OnChanges {
   }
 
   protected onTouchMove(event: TouchEvent): void {
+    console.log('[CauseCanvas] onTouchMove', { touches: event.touches.length, dragging: this.touchDragging });
     // Pinch zoom
     if (event.touches.length === 2 && this.pinchStartDistance && this.pinchStartZoom) {
       event.preventDefault();
@@ -210,6 +220,7 @@ export class CauseCanvasComponent implements AfterViewInit, OnChanges {
   }
 
   protected onTouchEnd(_event: TouchEvent): void {
+    console.log('[CauseCanvas] onTouchEnd');
     this.touchDragging = false;
     this.draggingPointerType = null;
     this.canvasRef.nativeElement.classList.remove('dragging');
