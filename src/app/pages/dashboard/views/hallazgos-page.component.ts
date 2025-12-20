@@ -83,10 +83,6 @@ export class HallazgosPageComponent {
     });
   }
 
-  createFinding() {
-    alert('Iniciando flujo de cámara IA...');
-  }
-
   // --- Modal de enviados ---
   modalOpen = signal(false);
   modalItem = signal<Finding | null>(null);
