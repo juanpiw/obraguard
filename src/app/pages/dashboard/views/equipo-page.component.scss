@@ -6,6 +6,12 @@
   gap: 1.5rem;
 }
 
+.team-page--disabled {
+  pointer-events: none;
+  filter: grayscale(1);
+  opacity: 0.6;
+}
+
 .team-page__header {
   display: flex;
   flex-direction: column;
