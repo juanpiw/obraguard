@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, map } from 'rxjs';
+import { Observable, map, timeout, catchError, tap } from 'rxjs';
+import { throwError } from 'rxjs';
 import { CauseNode } from '../models/cause-tree.model';
 
 const ENV_API_URL = (import.meta as { env?: Record<string, string> }).env?.['NG_APP_API_URL'];
@@ -118,29 +119,43 @@ export class CauseTreeService {
       ...(meta || {})
     });
   }
+  private withMetrics<T>(obs: Observable<T>, op: string, meta?: Record<string, any>): Observable<T> {
+    const started = performance.now();
+    return obs.pipe(
+      timeout(10000),
+      tap({
+        next: () => this.log(`${op} -> ok`, { ...(meta || {}), ms: Math.round(performance.now() - started) })
+      }),
+      catchError((err) => {
+        this.log(`${op} -> error`, {
+          ...(meta || {}),
+          ms: Math.round(performance.now() - started),
+          message: err?.message,
+          status: err?.status
+        });
+        return throwError(() => err);
+      })
+    );
+  }
 
   getTree(id: number | string): Observable<CauseTreeResponse> {
     this.log('getTree -> start', { id });
-    return this.http
-      .get<{ data: CauseTreeResponse }>(`${API_BASE}/api/cause-trees/${id}`)
-      .pipe(
-        map((resp) => {
-          this.log('getTree -> ok', { id });
-          return resp.data;
-        })
-      );
+    return this.withMetrics(
+      this.http.get<{ data: CauseTreeResponse }>(`${API_BASE}/api/cause-trees/${id}`).pipe(map((resp) => resp.data)),
+      'getTree',
+      { id }
+    );
   }
 
   getByHallazgo(hallazgoId: number | string): Observable<CauseTreeResponse> {
     this.log('getByHallazgo -> start', { hallazgoId });
-    return this.http
-      .get<{ data: CauseTreeResponse }>(`${API_BASE}/api/cause-trees/hallazgo/${hallazgoId}`)
-      .pipe(
-        map((resp) => {
-          this.log('getByHallazgo -> ok', { hallazgoId });
-          return resp.data;
-        })
-      );
+    return this.withMetrics(
+      this.http
+        .get<{ data: CauseTreeResponse }>(`${API_BASE}/api/cause-trees/hallazgo/${hallazgoId}`)
+        .pipe(map((resp) => resp.data)),
+      'getByHallazgo',
+      { hallazgoId }
+    );
   }
 
   createTree(payload: CreateTreePayload): Observable<CauseTreeResponse> {
@@ -148,17 +163,11 @@ export class CauseTreeService {
       hallazgoId: payload?.hallazgoId ?? null,
       hasRoot: !!payload?.root
     });
-    return this.http
-      .post<{ data: CauseTreeResponse }>(`${API_BASE}/api/cause-trees`, payload)
-      .pipe(
-        map((resp) => {
-          this.log('createTree -> ok', {
-            hallazgoId: payload?.hallazgoId ?? null,
-            id: resp?.data?.id
-          });
-          return resp.data;
-        })
-      );
+    return this.withMetrics(
+      this.http.post<{ data: CauseTreeResponse }>(`${API_BASE}/api/cause-trees`, payload).pipe(map((resp) => resp.data)),
+      'createTree',
+      { hallazgoId: payload?.hallazgoId ?? null }
+    );
   }
 
   updateTree(id: number | string, payload: UpdateTreePayload): Observable<CauseTreeResponse> {
@@ -167,14 +176,13 @@ export class CauseTreeService {
       hallazgoId: payload?.hallazgoId ?? null,
       hasRoot: !!payload?.root
     });
-    return this.http
-      .patch<{ data: CauseTreeResponse }>(`${API_BASE}/api/cause-trees/${id}`, payload)
-      .pipe(
-        map((resp) => {
-          this.log('updateTree -> ok', { id });
-          return resp.data;
-        })
-      );
+    return this.withMetrics(
+      this.http
+        .patch<{ data: CauseTreeResponse }>(`${API_BASE}/api/cause-trees/${id}`, payload)
+        .pipe(map((resp) => resp.data)),
+      'updateTree',
+      { id }
+    );
   }
 
   listTrees(params?: { hallazgoId?: number | string; limit?: number }): Observable<CauseTreeListItem[]> {
@@ -184,14 +192,11 @@ export class CauseTreeService {
     if (params?.limit) query.set('limit', String(params.limit));
     const qs = query.toString();
     const url = qs ? `${API_BASE}/api/cause-trees?${qs}` : `${API_BASE}/api/cause-trees`;
-    return this.http
-      .get<{ data: CauseTreeListItem[] }>(url)
-      .pipe(
-        map((resp) => {
-          this.log('listTrees -> ok', { count: resp?.data?.length ?? 0 });
-          return resp.data;
-        })
-      );
+    return this.withMetrics(
+      this.http.get<{ data: CauseTreeListItem[] }>(url).pipe(map((resp) => resp.data)),
+      'listTrees',
+      { hallazgoId: params?.hallazgoId ?? null, limit: params?.limit ?? null }
+    );
   }
 
   upsertForHallazgo(
@@ -203,29 +208,24 @@ export class CauseTreeService {
       mode: payload?.treeId ? 'update' : 'create',
       hasRoot: !!payload?.root
     });
-    return this.http
-      .post<{ data: CauseTreeResponse }>(
-        `${API_BASE}/api/cause-trees/hallazgo/${hallazgoId}`,
-        payload
-      )
-      .pipe(
-        map((resp) => {
-          this.log('upsertForHallazgo -> ok', { hallazgoId, id: resp?.data?.id });
-          return resp.data;
-        })
-      );
+    return this.withMetrics(
+      this.http
+        .post<{ data: CauseTreeResponse }>(`${API_BASE}/api/cause-trees/hallazgo/${hallazgoId}`, payload)
+        .pipe(map((resp) => resp.data)),
+      'upsertForHallazgo',
+      { hallazgoId }
+    );
   }
 
   generateAi(id: number | string, payload: GenerateAiPayload = {}): Observable<CauseTreeResponse> {
     this.log('generateAi -> start', { id, mode: payload?.mode ?? 'overwrite' });
-    return this.http
-      .post<{ data: CauseTreeResponse }>(`${API_BASE}/api/cause-trees/${id}/generate`, payload)
-      .pipe(
-        map((resp) => {
-          this.log('generateAi -> ok', { id });
-          return resp.data;
-        })
-      );
+    return this.withMetrics(
+      this.http
+        .post<{ data: CauseTreeResponse }>(`${API_BASE}/api/cause-trees/${id}/generate`, payload)
+        .pipe(map((resp) => resp.data)),
+      'generateAi',
+      { id }
+    );
   }
 
   suggestNode(id: number | string, payload: SuggestNodePayload): Observable<SuggestNodeResponse> {
@@ -233,38 +233,35 @@ export class CauseTreeService {
       id,
       parentTextLen: payload?.parentText ? payload.parentText.length : 0
     });
-    return this.http
-      .post<{ data: SuggestNodeResponse }>(`${API_BASE}/api/cause-trees/${id}/suggest-node`, payload)
-      .pipe(
-        map((resp) => {
-          this.log('suggestNode -> ok', { id });
-          return resp.data;
-        })
-      );
+    return this.withMetrics(
+      this.http
+        .post<{ data: SuggestNodeResponse }>(`${API_BASE}/api/cause-trees/${id}/suggest-node`, payload)
+        .pipe(map((resp) => resp.data)),
+      'suggestNode',
+      { id }
+    );
   }
 
   deleteTree(id: number | string): Observable<DeleteTreeResponse> {
     this.log('deleteTree -> start', { id });
-    return this.http
-      .delete<{ data: DeleteTreeResponse }>(`${API_BASE}/api/cause-trees/${id}`)
-      .pipe(
-        map((resp) => {
-          this.log('deleteTree -> ok', { id });
-          return resp.data;
-        })
-      );
+    return this.withMetrics(
+      this.http
+        .delete<{ data: DeleteTreeResponse }>(`${API_BASE}/api/cause-trees/${id}`)
+        .pipe(map((resp) => resp.data)),
+      'deleteTree',
+      { id }
+    );
   }
 
   getReport(id: number | string): Observable<CauseTreeReportResponse> {
     this.log('getReport -> start', { id });
-    return this.http
-      .get<{ data: CauseTreeReportResponse }>(`${API_BASE}/api/cause-trees/${id}/report`)
-      .pipe(
-        map((resp) => {
-          this.log('getReport -> ok', { id });
-          return resp.data;
-        })
-      );
+    return this.withMetrics(
+      this.http
+        .get<{ data: CauseTreeReportResponse }>(`${API_BASE}/api/cause-trees/${id}/report`)
+        .pipe(map((resp) => resp.data)),
+      'getReport',
+      { id }
+    );
   }
 
   upsertReport(id: number | string, payload: UpsertReportPayload): Observable<CauseTreeReportResponse> {
@@ -273,64 +270,57 @@ export class CauseTreeService {
       hasFicha: !!payload?.ficha,
       hasRelato: !!payload?.relato
     });
-    return this.http
-      .put<{ data: CauseTreeReportResponse }>(`${API_BASE}/api/cause-trees/${id}/report`, payload)
-      .pipe(
-        map((resp) => {
-          this.log('upsertReport -> ok', { id });
-          return resp.data;
-        })
-      );
+    return this.withMetrics(
+      this.http
+        .put<{ data: CauseTreeReportResponse }>(`${API_BASE}/api/cause-trees/${id}/report`, payload)
+        .pipe(map((resp) => resp.data)),
+      'upsertReport',
+      { id }
+    );
   }
 
   listMeasures(id: number | string): Observable<MeasureItem[]> {
     this.log('listMeasures -> start', { id });
-    return this.http
-      .get<{ data: MeasureItem[] }>(`${API_BASE}/api/cause-trees/${id}/measures`)
-      .pipe(
-        map((resp) => {
-          this.log('listMeasures -> ok', { id, count: resp?.data?.length ?? 0 });
-          return resp.data;
-        })
-      );
+    return this.withMetrics(
+      this.http
+        .get<{ data: MeasureItem[] }>(`${API_BASE}/api/cause-trees/${id}/measures`)
+        .pipe(map((resp) => resp.data)),
+      'listMeasures',
+      { id }
+    );
   }
 
   createMeasure(id: number | string, payload: CreateMeasurePayload): Observable<MeasureItem> {
     this.log('createMeasure -> start', { id, hasCausaRaiz: !!payload?.causaRaiz });
-    return this.http
-      .post<{ data: MeasureItem }>(`${API_BASE}/api/cause-trees/${id}/measures`, payload)
-      .pipe(
-        map((resp) => {
-          this.log('createMeasure -> ok', { id, measureId: resp?.data?.id });
-          return resp.data;
-        })
-      );
+    return this.withMetrics(
+      this.http
+        .post<{ data: MeasureItem }>(`${API_BASE}/api/cause-trees/${id}/measures`, payload)
+        .pipe(map((resp) => resp.data)),
+      'createMeasure',
+      { id }
+    );
   }
 
   updateMeasure(id: number | string, measureId: number | string, payload: UpdateMeasurePayload): Observable<MeasureItem> {
     this.log('updateMeasure -> start', { id, measureId });
-    return this.http
-      .patch<{ data: MeasureItem }>(`${API_BASE}/api/cause-trees/${id}/measures/${measureId}`, payload)
-      .pipe(
-        map((resp) => {
-          this.log('updateMeasure -> ok', { id, measureId });
-          return resp.data;
-        })
-      );
+    return this.withMetrics(
+      this.http
+        .patch<{ data: MeasureItem }>(`${API_BASE}/api/cause-trees/${id}/measures/${measureId}`, payload)
+        .pipe(map((resp) => resp.data)),
+      'updateMeasure',
+      { id, measureId }
+    );
   }
 
   deleteMeasure(id: number | string, measureId: number | string): Observable<{ id: number | string; deleted: boolean }> {
     this.log('deleteMeasure -> start', { id, measureId });
-    return this.http
-      .delete<{ data: { id: number | string; deleted: boolean } }>(
-        `${API_BASE}/api/cause-trees/${id}/measures/${measureId}`
-      )
-      .pipe(
-        map((resp) => {
-          this.log('deleteMeasure -> ok', { id, measureId });
-          return resp.data;
-        })
-      );
+    return this.withMetrics(
+      this.http
+        .delete<{ data: { id: number | string; deleted: boolean } }>(`${API_BASE}/api/cause-trees/${id}/measures/${measureId}`)
+        .pipe(map((resp) => resp.data)),
+      'deleteMeasure',
+      { id, measureId }
+    );
   }
 }
 

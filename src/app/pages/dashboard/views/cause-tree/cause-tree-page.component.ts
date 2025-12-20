@@ -202,6 +202,7 @@ export class CauseTreePageComponent {
   }
 
   protected loadHistory(): void {
+    const t0 = performance.now();
     console.log('[CauseTreePage] loadHistory start');
     this.service
       .listTrees({ limit: 12 })
@@ -223,15 +224,21 @@ export class CauseTreePageComponent {
               queryParamsHandling: 'merge'
             });
           }
+          console.log('[CauseTreePage] loadHistory ok', {
+            count: items.length,
+            ms: Math.round(performance.now() - t0)
+          });
         },
         error: (err) => {
           console.error('[CauseTree][UI] history load error', err);
           this.error.set('No se pudo cargar el historial de árboles.');
+          console.log('[CauseTreePage] loadHistory fail', { ms: Math.round(performance.now() - t0) });
         }
       });
   }
 
   protected loadTree(idParam?: string | null): void {
+    const t0 = performance.now();
     console.log('[CauseTreePage] loadTree start', { idParam });
     this.loading.set(true);
     this.error.set(null);
@@ -241,11 +248,13 @@ export class CauseTreePageComponent {
       if (this.prefillRoot()) {
         this.tree.set(this.prefillRoot());
         this.loading.set(false);
+        console.log('[CauseTreePage] loadTree using prefill root', { ms: Math.round(performance.now() - t0) });
         return;
       }
       this.error.set('Selecciona o pasa un id de árbol (?id=). Mostrando demo.');
       this.tree.set(DEMO_TREE);
       this.loading.set(false);
+      console.log('[CauseTreePage] loadTree demo fallback', { ms: Math.round(performance.now() - t0) });
       return;
     }
 
@@ -273,17 +282,22 @@ export class CauseTreePageComponent {
           // Cargar informe/medidas para este árbol
           this.loadReportAndMeasures(id);
         }),
-        finalize(() => this.loading.set(false)),
+        finalize(() => {
+          this.loading.set(false);
+          console.log('[CauseTreePage] loadTree finalize', { id, ms: Math.round(performance.now() - t0) });
+        }),
         takeUntilDestroyed(this.destroyRef)
       )
       .subscribe({
         error: (err) => {
           console.error('[CauseTree][UI] tree load error', err);
           if (this.prefillRoot()) {
+            console.log('[CauseTreePage] loadTree fallback prefill root');
             this.error.set('No se pudo cargar el árbol guardado. Mostrando árbol pre-cargado desde hallazgo.');
             this.tree.set(this.prefillRoot());
             return;
           }
+          console.log('[CauseTreePage] loadTree fallback demo');
           this.error.set('No se pudo cargar el árbol. Mostrando datos de ejemplo.');
           this.tree.set(DEMO_TREE);
         }

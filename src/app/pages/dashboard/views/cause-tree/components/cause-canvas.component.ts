@@ -55,6 +55,8 @@ export class CauseCanvasComponent implements AfterViewInit, OnChanges {
   private touchStartY = 0;
   private touchScrollLeft = 0;
   private touchScrollTop = 0;
+  private lastWheelLog = 0;
+  private lastTouchLog = 0;
   private readonly isBrowser: boolean;
 
   constructor(@Inject(PLATFORM_ID) platformId: object) {
@@ -129,7 +131,11 @@ export class CauseCanvasComponent implements AfterViewInit, OnChanges {
   protected onWheel(event: WheelEvent): void {
     // Zoom intencional: Ctrl+scroll (trackpad pinch suele venir con ctrlKey)
     if (!event.ctrlKey && !event.metaKey) return;
-    console.log('[CauseCanvas] onWheel zoom', { deltaY: event.deltaY, ctrl: event.ctrlKey, meta: event.metaKey });
+    const now = performance.now();
+    if (now - this.lastWheelLog > 300) {
+      this.lastWheelLog = now;
+      console.log('[CauseCanvas] onWheel zoom', { deltaY: event.deltaY, ctrl: event.ctrlKey, meta: event.metaKey });
+    }
     event.preventDefault();
     const delta = event.deltaY;
     const direction = delta > 0 ? -1 : 1;
@@ -195,7 +201,11 @@ export class CauseCanvasComponent implements AfterViewInit, OnChanges {
   }
 
   protected onTouchMove(event: TouchEvent): void {
-    console.log('[CauseCanvas] onTouchMove', { touches: event.touches.length, dragging: this.touchDragging });
+    const now = performance.now();
+    if (now - this.lastTouchLog > 200) {
+      this.lastTouchLog = now;
+      console.log('[CauseCanvas] onTouchMove', { touches: event.touches.length, dragging: this.touchDragging });
+    }
     // Pinch zoom
     if (event.touches.length === 2 && this.pinchStartDistance && this.pinchStartZoom) {
       event.preventDefault();
