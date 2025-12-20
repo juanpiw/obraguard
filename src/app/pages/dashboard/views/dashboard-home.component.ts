@@ -170,10 +170,11 @@ export class DashboardHomeComponent {
     if (!fileName) return;
     this.iperDeleting.set(fileName);
     this.hallazgosService.deleteIper(fileName).subscribe({
-      next: () => {
-        this.iperMessage.set('IPER eliminado.');
+      next: (resp) => {
+        this.iperMessage.set(resp?.deleted ? 'IPER eliminado.' : 'No se pudo eliminar el IPER.');
         this.iperDeleting.set(null);
-        this.hallazgosService.loadHallazgos().subscribe(); // refrescar lista
+        // refrescar lista para reflejar borrado en backend
+        this.hallazgosService.loadHallazgos().subscribe();
       },
       error: (err) => {
         console.error('[Dashboard][UI] delete IPER error', err);

@@ -309,15 +309,14 @@ export class HallazgosService {
         throw err;
       }),
       tap((resp) => {
-        if (resp?.deleted) {
-          this.hallazgosSignal.update((items) =>
-            items.map((h) =>
-              h.iper_url?.includes(file) || h.iper_file === file
-                ? { ...h, iper_file: null, iper_url: null }
-                : h
-            )
-          );
-        }
+        if (!resp?.deleted) return;
+        this.hallazgosSignal.update((items) =>
+          items.map((h) =>
+            h.iper_url?.includes(file) || h.iper_file === file
+              ? { ...h, iper_file: null, iper_url: null }
+              : h
+          )
+        );
       })
     );
   }
