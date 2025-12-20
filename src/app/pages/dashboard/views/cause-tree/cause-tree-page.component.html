@@ -1,15 +1,9 @@
 <section class="cause-page">
   <header class="page-header">
     <div class="page-header__left">
-      <p class="eyebrow">Investigación #{{ investigationId() }}</p>
+      <p class="eyebrow">Árbol seleccionado: {{ causeTreeId() || 'demo' }}</p>
       <h1>Árbol de Causas</h1>
-      <p class="muted">Vista responsiva para desglosar causas raíz. Usa drag para navegar.</p>
-
-      <div class="chips">
-        <span class="chip chip--red">Grave</span>
-        <span class="chip chip--muted">En progreso</span>
-        <span class="chip chip--outline">Zona de Carga · Torre B</span>
-      </div>
+      <p class="muted">Selecciona un árbol previo o navega con el ID en el query string.</p>
     </div>
 
     <div class="page-header__actions">
@@ -34,18 +28,39 @@
     <div *ngIf="error()" class="status status--warn">{{ error() }}</div>
   </div>
 
-  <app-cause-canvas
-    [tree]="tree()"
-    (addNode)="openAdd($event)"
-    (editNode)="openEdit($event)"
-  ></app-cause-canvas>
+  <div class="layout">
+    <aside class="history-panel">
+      <h4>Historial</h4>
+      <div class="history-list">
+        <button
+          *ngFor="let item of history()"
+          type="button"
+          [class.history-item--active]="item.id === causeTreeId()"
+          class="history-item"
+          (click)="selectTree(item.id)"
+        >
+          <span>#{{ item.id }}</span>
+          <small *ngIf="item.hallazgoId">Hallazgo: {{ item.hallazgoId }}</small>
+          <small *ngIf="item.updatedAt">{{ item.updatedAt | date: 'short' }}</small>
+        </button>
+      </div>
+    </aside>
+
+    <div class="canvas-wrapper">
+      <app-cause-canvas
+        [tree]="tree()"
+        (addNode)="openAdd($event)"
+        (editNode)="openEdit($event)"
+      ></app-cause-canvas>
+    </div>
+  </div>
 
   <app-node-modal
     [open]="modalOpen()"
-    [mode]="modalMode()"
+    [mode]="'add'"
     [saving]="saving()"
-    [initialText]="editing()?.text || ''"
-    [initialType]="editing()?.type || 'Condición'"
+    [initialText]="''"
+    [initialType]="'Condición'"
     (cancel)="closeModal()"
     (save)="saveNode($event)"
   ></app-node-modal>

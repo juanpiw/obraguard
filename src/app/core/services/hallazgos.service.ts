@@ -6,6 +6,7 @@ import {
   HallazgoRiesgo
 } from '../models/hallazgo.model';
 import { Observable, catchError, map, of, tap } from 'rxjs';
+import { CauseNode } from '../models/cause-tree.model';
 
 const API_BASE =
   'https://www.api.thefutureagencyai.com' ||
@@ -31,6 +32,9 @@ export interface CreateHallazgoPayload {
   reportero?: string;
   anonimo?: boolean;
   mediaId?: number | null;
+  meta?: 'normal' | 'telefono' | 'arbol';
+  root_json?: CauseNode;
+  causeTreeId?: number | string | null;
 }
 
 @Injectable({ providedIn: 'root' })

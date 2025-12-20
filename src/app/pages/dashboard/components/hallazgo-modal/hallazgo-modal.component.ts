@@ -8,6 +8,7 @@ import {
 import { Router } from '@angular/router';
 import { HallazgosService } from '../../../../core/services/hallazgos.service';
 import { HallazgoRiesgo } from '../../../../core/models/hallazgo.model';
+import { CauseNode } from '../../../../core/models/cause-tree.model';
 import { firstValueFrom } from 'rxjs';
 
 const REPORTERO_DEFAULT = 'Carolina Vega (Prevencionista)';
@@ -35,6 +36,7 @@ export class HallazgoModalComponent {
   protected readonly aiMessage = signal<string | null>(null);
   protected readonly aiDescripcion = signal<string | null>(null);
   protected readonly aiRiesgo = signal<HallazgoRiesgo | null>(null);
+  protected readonly aiCausas = signal<string[]>([]);
   protected readonly submitting = signal(false);
   protected readonly captureMode = signal<CaptureMode>('upload');
   protected readonly activeTab = signal<FormTab>('manual');
@@ -94,6 +96,7 @@ export class HallazgoModalComponent {
       this.aiMessage.set(resp.descripcion);
       this.aiDescripcion.set(resp.descripcion);
       this.aiRiesgo.set(resp.riesgo);
+      this.aiCausas.set(resp.causas || []);
       this.analyzedMediaId = resp.mediaId ?? null;
       this.analyzedMediaUrl = resp.mediaUrl ?? null;
       this.analyzedDescripcion = resp.descripcion ?? null;
@@ -136,6 +139,7 @@ export class HallazgoModalComponent {
       : this.form.get('reportero')?.value || REPORTERO_DEFAULT;
 
     try {
+      const rootJson = this.buildRootJson();
       const payload = {
         titulo: this.form.get('titulo')?.value ?? '',
         riesgo: (this.form.get('riesgo')?.value ?? 'Medio') as HallazgoRiesgo,
@@ -144,7 +148,8 @@ export class HallazgoModalComponent {
         anonimo: this.anonimo,
         descripcion_ai: this.analyzedDescripcion ?? undefined,
         mediaId: this.analyzedMediaId ?? undefined,
-        meta: mode
+        meta: mode,
+        root_json: mode === 'arbol' ? rootJson : undefined
       };
 
       const saved = await firstValueFrom(this.hallazgosService.createHallazgo(payload));
@@ -160,8 +165,9 @@ export class HallazgoModalComponent {
       if (mode === 'arbol') {
         const treeId = saved?.id ?? '';
         console.log('[Hallazgos][UI] navigate to arbol-causas', { treeId });
+        const finalTreeId = saved?.causeTreeId || treeId;
         void this.router.navigate(['/app/arbol-causas'], {
-          queryParams: treeId ? { id: treeId } : {}
+          queryParams: finalTreeId ? { id: finalTreeId } : {}
         });
       }
       this.form.reset({
@@ -208,6 +214,27 @@ export class HallazgoModalComponent {
     const value = (event.target as HTMLTextAreaElement).value;
     this.aiDescripcion.set(value);
     this.analyzedDescripcion = value;
+  }
+
+  private buildRootJson(): CauseNode {
+    const titulo = this.form.get('titulo')?.value || 'Hallazgo';
+    const riesgo = (this.form.get('riesgo')?.value ?? 'Medio') as HallazgoRiesgo;
+    const descripcion = this.aiDescripcion() || this.form.get('titulo')?.value || '';
+    const causes = this.aiCausas();
+
+    const children: CauseNode[] = (causes || []).map((c, idx) => ({
+      id: `c${idx + 1}`,
+      text: c,
+      type: 'Hecho',
+      children: []
+    }));
+
+    return {
+      id: 'root',
+      text: descripcion || titulo,
+      type: riesgo === 'Alto' ? 'Accidente' : 'Hecho',
+      children
+    };
   }
 
   protected onMediaSelected(event: Event): void {

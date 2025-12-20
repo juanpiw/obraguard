@@ -6,16 +6,13 @@ import {
   inject,
   signal
 } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { finalize, tap } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import {
-  CauseNode,
-  CauseNodeType
-} from '../../../../core/models/cause-tree.model';
+import { CauseNode } from '../../../../core/models/cause-tree.model';
 import { CauseTreeService } from '../../../../core/services/cause-tree.service';
 import { CauseCanvasComponent } from './components/cause-canvas.component';
-import { NodeModalComponent, NodeModalMode } from './components/node-modal.component';
+import { NodeModalComponent } from './components/node-modal.component';
 import { AiToastComponent } from './components/ai-toast.component';
 
 const DEMO_TREE: CauseNode = {
@@ -96,6 +93,7 @@ const DEMO_TREE: CauseNode = {
 export class CauseTreePageComponent {
   private readonly service = inject(CauseTreeService);
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
 
   protected readonly loading = signal(true);
@@ -103,38 +101,67 @@ export class CauseTreePageComponent {
   protected readonly error = signal<string | null>(null);
   protected readonly tree = signal<CauseNode | null>(null);
   protected readonly aiStatus = signal<'idle' | 'working' | 'done'>('idle');
+  protected readonly history = signal<{ id: number | string; hallazgoId?: number | string | null; updatedAt?: string }[]>([]);
 
   protected readonly modalOpen = signal(false);
-  protected readonly modalMode = signal<NodeModalMode>('add');
-  protected readonly editing = signal<{
-    nodeId?: number | string;
-    parentId?: number | string;
-    text: string;
-    type: CauseNodeType;
-  } | null>(null);
 
-  protected readonly investigationId = computed(
-    () => this.route.snapshot.queryParamMap.get('id') ?? '1'
-  );
+  protected readonly causeTreeId = computed(() => this.route.snapshot.queryParamMap.get('id'));
 
   protected readonly aiTitle = computed(() =>
     this.aiStatus() === 'working' ? 'Generando árbol con IA...' : 'Procesando con IA...'
   );
 
   constructor() {
+    this.loadHistory();
     this.loadTree();
     this.route.queryParamMap
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => this.loadTree());
   }
 
+  protected loadHistory(): void {
+    this.service
+      .listTrees({ limit: 12 })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (items) => {
+          this.history.set(
+            items.map((i) => ({
+              id: i.id,
+              hallazgoId: i.hallazgoId,
+              updatedAt: i.updatedAt
+            }))
+          );
+          // Si no hay id seleccionado y tenemos historial, redirigimos al primero
+          if (!this.causeTreeId() && items[0]?.id) {
+            void this.router.navigate([], {
+              relativeTo: this.route,
+              queryParams: { id: items[0].id },
+              queryParamsHandling: 'merge'
+            });
+          }
+        },
+        error: () => {
+          this.error.set('No se pudo cargar el historial de árboles.');
+        }
+      });
+  }
+
   protected loadTree(): void {
     this.loading.set(true);
     this.error.set(null);
+    const id = this.causeTreeId();
+    if (!id) {
+      this.error.set('Selecciona o pasa un id de árbol (?id=). Mostrando demo.');
+      this.tree.set(DEMO_TREE);
+      this.loading.set(false);
+      return;
+    }
+
     this.service
-      .getTree(this.investigationId())
+      .getTree(id)
       .pipe(
-        tap((tree) => this.tree.set(tree)),
+        tap((resp) => this.tree.set(resp.root)),
         finalize(() => this.loading.set(false)),
         takeUntilDestroyed(this.destroyRef)
       )
@@ -146,82 +173,35 @@ export class CauseTreePageComponent {
       });
   }
 
-  protected openAdd(parentId: number | string): void {
-    this.modalMode.set('add');
-    this.editing.set({ parentId, text: '', type: 'Condición' });
-    this.modalOpen.set(true);
+  protected openAdd(): void {
+    this.error.set('Edición de árbol no disponible en esta vista.');
   }
 
-  protected openEdit(node: CauseNode): void {
-    this.modalMode.set('edit');
-    this.editing.set({
-      nodeId: node.id,
-      text: node.text,
-      type: node.type
-    });
-    this.modalOpen.set(true);
+  protected openEdit(): void {
+    this.error.set('Edición de árbol no disponible en esta vista.');
   }
 
   protected closeModal(): void {
     this.modalOpen.set(false);
-    this.editing.set(null);
   }
 
-  protected saveNode(payload: { text: string; type: CauseNodeType }): void {
-    const edit = this.editing();
-    if (!edit) return;
-    const mode = this.modalMode();
-    this.saving.set(true);
-
-    const request$ =
-      mode === 'add'
-        ? this.service.addNode(this.investigationId(), edit.parentId!, payload)
-        : this.service.updateNode(this.investigationId(), edit.nodeId!, payload);
-
-    request$
-      .pipe(finalize(() => this.saving.set(false)), takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (tree) => {
-          this.tree.set(tree);
-          this.closeModal();
-          this.error.set(null);
-        },
-        error: () => {
-          this.error.set('No se pudo guardar el nodo. Intenta nuevamente.');
-        }
-      });
+  protected saveNode(): void {
+    this.error.set('Edición de árbol no disponible en esta vista.');
   }
 
   protected generateAiTree(): void {
-    this.aiStatus.set('working');
-    this.service
-      .generateAiTree(this.investigationId())
-      .pipe(finalize(() => this.aiStatus.set('done')), takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (tree) => {
-          this.tree.set(tree);
-          setTimeout(() => this.aiStatus.set('idle'), 800);
-        },
-        error: () => {
-          this.aiStatus.set('idle');
-          this.error.set('No se pudo generar el árbol con IA.');
-        }
-      });
+    this.error.set('Generar con IA no está disponible todavía.');
   }
 
   protected resetTree(): void {
-    this.loading.set(true);
-    this.service
-      .resetTree(this.investigationId())
-      .pipe(finalize(() => this.loading.set(false)), takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (tree) => {
-          this.tree.set(tree);
-          this.error.set(null);
-        },
-        error: () => {
-          this.error.set('No se pudo reiniciar el árbol.');
-        }
-      });
+    this.error.set('Reinicio no disponible en esta vista.');
+  }
+
+  protected selectTree(id: number | string): void {
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { id },
+      queryParamsHandling: 'merge'
+    });
   }
 }
