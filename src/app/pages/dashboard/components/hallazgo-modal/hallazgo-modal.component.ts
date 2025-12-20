@@ -37,6 +37,8 @@ export class HallazgoModalComponent {
   protected readonly aiDescripcion = signal<string | null>(null);
   protected readonly aiRiesgo = signal<HallazgoRiesgo | null>(null);
   protected readonly aiCausas = signal<string[]>([]);
+  protected readonly aiRecomendaciones = signal<string[]>([]);
+  protected readonly showImprovements = signal(false);
   protected readonly submitting = signal(false);
   protected readonly captureMode = signal<CaptureMode>('upload');
   protected readonly activeTab = signal<FormTab>('manual');
@@ -113,6 +115,8 @@ export class HallazgoModalComponent {
       this.aiDescripcion.set(resp.descripcion);
       this.aiRiesgo.set(resp.riesgo);
       this.aiCausas.set(resp.causas || []);
+      this.aiRecomendaciones.set(resp.recomendaciones || []);
+      this.showImprovements.set(false);
       this.analyzedMediaId = resp.mediaId ?? null;
       this.analyzedMediaUrl = resp.mediaUrl ?? null;
       this.analyzedDescripcion = resp.descripcion ?? null;
@@ -179,7 +183,9 @@ export class HallazgoModalComponent {
         causas: this.aiCausas() ?? [],
         mediaId: this.analyzedMediaId ?? undefined,
         meta: mode,
-        root_json: mode === 'arbol' ? rootJson : undefined
+        root_json: mode === 'arbol' ? rootJson : undefined,
+        autoApply: mode === 'matriz',
+        file: this.analyzedMediaId ? null : this.selectedFile
       };
 
       console.log('[Hallazgos][UI] payload', { mode, payload });
@@ -219,7 +225,11 @@ export class HallazgoModalComponent {
           this.submitted.emit(`Hallazgo "${payload.titulo}" enviado con árbol de causa.`);
         }
       } else if (mode !== 'telefono') {
-        this.submitted.emit(`Hallazgo "${payload.titulo}" reportado con éxito.`);
+        this.submitted.emit(
+          mode === 'matriz'
+            ? `Hallazgo "${payload.titulo}" enviado a matriz (pendiente validación).`
+            : `Hallazgo "${payload.titulo}" reportado con éxito.`
+        );
       }
       this.form.reset({
         titulo: '',
@@ -272,6 +282,17 @@ export class HallazgoModalComponent {
       descripcionActual: this.aiDescripcion(),
       riesgoActual: this.aiRiesgo()
     });
+    if (!this.aiDescripcion() && !this.aiRiesgo()) {
+      this.aiMessage.set('Primero ejecuta el análisis IA para obtener mejoras.');
+      return;
+    }
+
+    this.showImprovements.set(true);
+  }
+
+  protected aiRecsText(): string {
+    const recs = this.aiRecomendaciones() || [];
+    return recs.join('\n').trim();
   }
 
   private buildRootJson(): CauseNode {
@@ -376,6 +397,8 @@ export class HallazgoModalComponent {
     this.aiDescripcion.set(null);
     this.aiRiesgo.set(null);
     this.aiMessage.set(null);
+    this.aiRecomendaciones.set([]);
+    this.showImprovements.set(false);
   }
 
   private logInvalidForm(mode: 'normal' | 'telefono' | 'arbol' | 'matriz'): void {

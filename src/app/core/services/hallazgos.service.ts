@@ -56,6 +56,9 @@ export interface CreateHallazgoPayload {
   meta?: 'normal' | 'telefono' | 'arbol' | 'matriz';
   root_json?: CauseNode;
   causeTreeId?: number | string | null;
+  obraId?: number | string | null;
+  autoApply?: boolean;
+  file?: File | null;
 }
 
 export interface HallazgoListItemResponse {
@@ -166,27 +169,55 @@ export class HallazgosService {
   }
 
   createHallazgo(payload: CreateHallazgoPayload): Observable<Hallazgo> {
+    const form = new FormData();
+    form.append('titulo', payload.titulo);
+    form.append('riesgo', payload.riesgo);
+    if (payload.sector) form.append('sector', payload.sector);
+    if (payload.descripcion_ai) form.append('descripcion_ai', payload.descripcion_ai);
+    if (payload.reporter) form.append('reporter', payload.reporter);
+    if (payload.anonimo) form.append('anonimo', String(payload.anonimo));
+    if (payload.mediaId) form.append('mediaId', String(payload.mediaId));
+    if (payload.meta) form.append('meta', payload.meta);
+    if (payload.root_json) form.append('root_json', JSON.stringify(payload.root_json));
+    if (payload.causeTreeId) form.append('causeTreeId', String(payload.causeTreeId));
+    if (payload.causas && payload.causas.length) {
+      form.append('causas', JSON.stringify(payload.causas));
+    }
+    if (payload.obraId) form.append('obraId', String(payload.obraId));
+    if (payload.autoApply) form.append('autoApply', 'true');
+    if (payload.file) form.append('file', payload.file);
+
+    return this.http.post<{ data: any }>(`${API_BASE}/api/hallazgos`, form).pipe(
+      map((resp) => {
+        const h: Hallazgo = {
+          id: resp.data?.id ?? Date.now(),
+          estado: (resp.data?.estado as HallazgoEstado) || 'Abierto',
+          riesgo: payload.riesgo,
+          titulo: payload.titulo,
+          reportero: payload.anonimo ? 'Anónimo' : payload.reporter || 'Anónimo',
+          fecha: new Date().toISOString().split('T')[0],
+          sector: payload.sector || '',
+          descripcion_ai: payload.descripcion_ai ?? null,
+          media_url: resp.data?.mediaUrl ?? null,
+          media_type: resp.data?.mediaType ?? null,
+          causeTreeId: resp.data?.causeTreeId ?? null
+        };
+        this.hallazgosSignal.update((current) => [...current, h]);
+        return h;
+      })
+    );
+  }
+
+  confirmHallazgo(id: number | string, body: any): Observable<any> {
     return this.http
-      .post<{ data: any }>(`${API_BASE}/api/hallazgos`, payload)
-      .pipe(
-        map((resp) => {
-          const h: Hallazgo = {
-            id: resp.data?.id ?? Date.now(),
-            estado: 'Abierto',
-            riesgo: payload.riesgo,
-            titulo: payload.titulo,
-            reportero: payload.anonimo ? 'Anónimo' : payload.reporter || 'Anónimo',
-            fecha: new Date().toISOString().split('T')[0],
-            sector: payload.sector || '',
-            descripcion_ai: payload.descripcion_ai ?? null,
-            media_url: resp.data?.mediaUrl ?? null,
-            media_type: resp.data?.mediaType ?? null,
-            causeTreeId: resp.data?.causeTreeId ?? null
-          };
-          this.hallazgosSignal.update((current) => [...current, h]);
-          return h;
-        })
-      );
+      .post<{ data: any }>(`${API_BASE}/api/hallazgos/${id}/confirm`, body)
+      .pipe(map((resp) => resp.data));
+  }
+
+  exportIper(obraId: number | string): Observable<{ iperFile: string; rows: number }> {
+    return this.http
+      .get<{ data: { iperFile: string; rows: number } }>(`${API_BASE}/api/iper/${obraId}/export`)
+      .pipe(map((resp) => resp.data));
   }
 
   private mapHallazgo(row: HallazgoListItemResponse): Hallazgo {

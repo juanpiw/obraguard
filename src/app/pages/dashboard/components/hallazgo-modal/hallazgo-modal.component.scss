@@ -501,6 +501,56 @@
   }
 }
 
+.ai-recs {
+  margin-top: 0.5rem;
+  padding: 0.85rem 1rem;
+  border-radius: 0.75rem;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  color: #0f172a;
+  font-size: 0.9rem;
+
+  &__title {
+    margin: 0 0 0.5rem;
+    font-weight: 700;
+    color: #0f172a;
+  }
+
+  ul {
+    margin: 0;
+    padding-left: 1rem;
+    display: grid;
+    gap: 0.35rem;
+  }
+
+  li {
+    color: #1f2937;
+    line-height: 1.4;
+  }
+
+  &__empty {
+    margin: 0;
+    color: #6b7280;
+  }
+
+  textarea {
+    width: 100%;
+    min-height: 110px;
+    border: 1px solid #d1d5db;
+    border-radius: 0.65rem;
+    padding: 0.65rem;
+    resize: vertical;
+    font-family: inherit;
+    color: #0f172a;
+    background: #f8fafc;
+
+    &:focus {
+      outline: 2px solid #4f46e5;
+      border-color: #4f46e5;
+    }
+  }
+}
+
 .riesgo-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));

@@ -170,6 +170,21 @@
                   Proponer mejoras
                 </button>
               </div>
+              @if (showImprovements()) {
+                <div class="ai-recs">
+                  <p class="ai-recs__title">Mejoras sugeridas</p>
+                  @if (aiRecomendaciones()?.length) {
+                    <textarea
+                      rows="4"
+                      readonly
+                      [value]="aiRecsText()"
+                      placeholder="La IA mostrará aquí las mejoras sugeridas."
+                    ></textarea>
+                  } @else {
+                    <p class="ai-recs__empty">Aún no hay mejoras sugeridas. Ejecuta el análisis IA.</p>
+                  }
+                </div>
+              }
               @if (aiMessage() && !aiDescripcion()) {
                 <div class="ai-result ai-result--message">
                   <p>{{ aiMessage() }}</p>
