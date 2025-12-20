@@ -165,6 +165,11 @@
                   <span class="ai-result__tag">Riesgo sugerido: {{ aiRiesgo() }}</span>
                 }
               </div>
+              <div class="ai-actions">
+                <button type="button" class="ai-secondary-button" (click)="proposeImprovements()" [disabled]="aiLoading()">
+                  Proponer mejoras
+                </button>
+              </div>
               @if (aiMessage() && !aiDescripcion()) {
                 <div class="ai-result ai-result--message">
                   <p>{{ aiMessage() }}</p>
@@ -262,17 +267,17 @@
                     <small>Incluye el árbol de causas generado.</small>
                   </div>
                 </label>
-                <label class="submit-option" (click)="setSubmitOption('normal')">
+                <label class="submit-option" (click)="setSubmitOption('matriz')">
                   <input
                     type="radio"
                     name="submitOption"
-                    [checked]="selectedSubmitOption() === 'normal'"
-                    (change)="setSubmitOption('normal')"
-                    value="normal"
+                    [checked]="selectedSubmitOption() === 'matriz'"
+                    (change)="setSubmitOption('matriz')"
+                    value="matriz"
                   />
                   <div>
-                    <p>Enviar estándar</p>
-                    <small>Solo el reporte base.</small>
+                    <p>Enviar a matriz de riesgo</p>
+                    <small>Incluye el reporte base.</small>
                   </div>
                 </label>
               </div>

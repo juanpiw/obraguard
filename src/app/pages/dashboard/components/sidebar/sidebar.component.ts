@@ -59,11 +59,13 @@ export class DashboardSidebarComponent {
   protected async logout(): Promise<void> {
     // Hoy el login no persiste sesión, pero limpiamos keys típicas por seguridad.
     try {
-      const keys = ['token', 'access_token', 'auth_token', 'jwt', 'guest_id'];
-      keys.forEach((k) => {
-        localStorage.removeItem(k);
-        sessionStorage.removeItem(k);
-      });
+      if (typeof window !== 'undefined') {
+        const keys = ['token', 'access_token', 'auth_token', 'jwt', 'guest_id'];
+        keys.forEach((k) => {
+          window.localStorage?.removeItem(k);
+          window.sessionStorage?.removeItem(k);
+        });
+      }
     } catch {
       // ignore
     }

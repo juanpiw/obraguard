@@ -48,7 +48,7 @@ export class HallazgoModalComponent {
   private analyzedMediaUrl: string | null = null;
   private analyzedDescripcion: string | null = null;
   protected readonly showSubmitOptions = signal(false);
-  protected readonly selectedSubmitOption = signal<'normal' | 'telefono' | 'arbol'>('normal');
+  protected readonly selectedSubmitOption = signal<'normal' | 'telefono' | 'arbol' | 'matriz'>('matriz');
 
   protected readonly form = this.fb.group({
     titulo: ['', [Validators.required, Validators.minLength(6)]],
@@ -138,11 +138,11 @@ export class HallazgoModalComponent {
       return;
     }
 
-    this.selectedSubmitOption.set('normal');
+    this.selectedSubmitOption.set('matriz');
     this.showSubmitOptions.update((v) => !v);
   }
 
-  protected setSubmitOption(option: 'normal' | 'telefono' | 'arbol'): void {
+  protected setSubmitOption(option: 'normal' | 'telefono' | 'arbol' | 'matriz'): void {
     console.log('[Hallazgos][UI] Opción seleccionada', option);
     this.selectedSubmitOption.set(option);
   }
@@ -154,7 +154,7 @@ export class HallazgoModalComponent {
     this.handleSubmit(option);
   }
 
-  protected async handleSubmit(mode: 'normal' | 'telefono' | 'arbol' = 'normal'): Promise<void> {
+  protected async handleSubmit(mode: 'normal' | 'telefono' | 'arbol' | 'matriz' = 'normal'): Promise<void> {
     console.log('[Hallazgos][UI] handleSubmit start', mode);
     if (this.form.invalid) {
       this.form.markAllAsTouched();
@@ -267,6 +267,13 @@ export class HallazgoModalComponent {
     this.analyzedDescripcion = value;
   }
 
+  protected proposeImprovements(): void {
+    console.log('[Hallazgos][IA] Proponer mejoras click', {
+      descripcionActual: this.aiDescripcion(),
+      riesgoActual: this.aiRiesgo()
+    });
+  }
+
   private buildRootJson(): CauseNode {
     const titulo = this.form.get('titulo')?.value || 'Hallazgo';
     const riesgo = (this.form.get('riesgo')?.value ?? 'Medio') as HallazgoRiesgo;
@@ -371,7 +378,7 @@ export class HallazgoModalComponent {
     this.aiMessage.set(null);
   }
 
-  private logInvalidForm(mode: 'normal' | 'telefono' | 'arbol'): void {
+  private logInvalidForm(mode: 'normal' | 'telefono' | 'arbol' | 'matriz'): void {
     const controls = this.form.controls as Record<string, any>;
     const invalid: Record<string, unknown> = {};
     for (const key of Object.keys(controls)) {

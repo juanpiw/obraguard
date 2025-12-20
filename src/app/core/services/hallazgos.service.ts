@@ -53,7 +53,7 @@ export interface CreateHallazgoPayload {
   reporter?: string;
   anonimo?: boolean;
   mediaId?: number | null;
-  meta?: 'normal' | 'telefono' | 'arbol';
+  meta?: 'normal' | 'telefono' | 'arbol' | 'matriz';
   root_json?: CauseNode;
   causeTreeId?: number | string | null;
 }

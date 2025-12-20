@@ -470,6 +470,37 @@
   font-size: 0.85rem;
 }
 
+.ai-actions {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.ai-secondary-button {
+  margin-top: 0.35rem;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #0f172a;
+  border-radius: 0.75rem;
+  padding: 0.55rem 0.9rem;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+  box-shadow: 0 6px 14px rgba(15, 23, 42, 0.08);
+
+  &:hover {
+    border-color: #4f46e5;
+    box-shadow: 0 10px 20px rgba(79, 70, 229, 0.18);
+    transform: translateY(-1px);
+  }
+
+  &:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+    transform: none;
+  }
+}
+
 .riesgo-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
