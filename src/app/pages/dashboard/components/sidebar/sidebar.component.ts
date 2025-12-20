@@ -5,7 +5,7 @@ import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 interface SidebarLink {
   label: string;
   route: string;
-  icon: 'dashboard' | 'hallazgos' | 'documentos' | 'equipo' | 'incidentes';
+  icon: 'dashboard' | 'hallazgos' | 'documentos' | 'equipo' | 'incidentes' | 'causas';
 }
 
 @Component({
@@ -83,6 +83,8 @@ export class DashboardSidebarComponent {
         return 'M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m-1.125 0H6.75A2.25 2.25 0 004.5 4.5v15A2.25 2.25 0 006.75 21h10.5A2.25 2.25 0 0019.5 18.75v-2.625m-3.75-10.5a3.375 3.375 0 00-3.375-3.375H8.25m1.125 0v1.5a1.125 1.125 0 01-1.125 1.125h-1.5';
       case 'incidentes':
         return 'M15 17h5l-1.405-1.405A1.993 1.993 0 0118 14.16V11a6 6 0 00-12 0v3.16c0 .53-.211 1.039-.586 1.415L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9';
+      case 'causas':
+        return 'M8.25 6.75a3.75 3.75 0 117.5 0v3a3.75 3.75 0 01-7.5 0v-3zM12 13.5v4.25m0 0l-2.25-2.25M12 17.75l2.25-2.25';
       case 'equipo':
       default:
         return 'M18 18.72a9.094 9.094 0 00-3.17-2.131m-5.66 0a9.094 9.094 0 01-3.17 2.131M15 9.75a3 3 0 11-6 0 3 3 0 016 0z';
