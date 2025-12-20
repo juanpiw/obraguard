@@ -182,7 +182,7 @@
             <label for="sector">Sector / Ubicación</label>
             <input id="sector" type="text" placeholder="Ej: Torre B, Piso 2, Baño B-201" formControlName="sector" />
             @if (form.get('sector')?.touched && form.get('sector')?.invalid) {
-              <small class="field-error">Ingresa el sector/ubicación (mínimo 3 caracteres).</small>
+              <small class="field-error">Si ingresas sector/ubicación debe tener mínimo 3 caracteres.</small>
             }
           </div>
 

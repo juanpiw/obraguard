@@ -53,7 +53,8 @@ export class HallazgoModalComponent {
   protected readonly form = this.fb.group({
     titulo: ['', [Validators.required, Validators.minLength(6)]],
     riesgo: ['Medio' as HallazgoRiesgo, Validators.required],
-    sector: ['', [Validators.required, Validators.minLength(3)]],
+    // Sector puede ser opcional (pero si se completa debe tener minLength)
+    sector: ['', [Validators.minLength(3)]],
     anonimo: [false],
     reportero: [REPORTERO_DEFAULT]
   });
