@@ -20,6 +20,12 @@ export class HallazgosTableComponent {
         return 'status-pill status-pill--yellow';
       case 'Cerrado':
         return 'status-pill status-pill--green';
+      case 'Pendiente':
+        return 'status-pill status-pill--gray';
+      case 'PendienteValidacion':
+        return 'status-pill status-pill--blue';
+      case 'Confirmado':
+        return 'status-pill status-pill--purple';
       default:
         return 'status-pill';
     }

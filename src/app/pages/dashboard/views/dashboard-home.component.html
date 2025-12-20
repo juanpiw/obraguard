@@ -24,6 +24,27 @@
         />
       </svg>
     </article>
+
+    <article class="kpi-card kpi-card--blue iper-card">
+      <div class="kpi-card__top">
+        <span>Matriz IPER</span>
+        <small class="muted">{{ iperLink() ? 'Última versión disponible' : 'Genera la primera versión' }}</small>
+      </div>
+      <p class="kpi-card__value">{{ iperLink() ? 'Descarga lista' : 'Sin archivo' }}</p>
+      <div class="kpi-card__actions">
+        @if (iperLink()) {
+          <a class="btn-link" [href]="iperLink()!" target="_blank" rel="noopener">Descargar</a>
+        }
+        <button type="button" class="btn" (click)="exportIper()" [disabled]="iperExporting()">
+          {{ iperExporting() ? 'Generando...' : 'Generar IPER' }}
+        </button>
+      </div>
+      @if (iperMessage()) {
+        <p class="kpi-card__helper">{{ iperMessage() }}</p>
+      } @else {
+        <p class="kpi-card__helper">Usa el último obraId detectado para generar Excel.</p>
+      }
+    </article>
   </div>
 
   <div class="dashboard-home__analytics">

@@ -1,4 +1,4 @@
-export type HallazgoEstado = 'Abierto' | 'En Proceso' | 'Cerrado';
+export type HallazgoEstado = 'Abierto' | 'En Proceso' | 'Cerrado' | 'Pendiente' | 'PendienteValidacion' | 'Confirmado';
 export type HallazgoRiesgo = 'Alto' | 'Medio' | 'Bajo';
 
 export interface Hallazgo {
@@ -6,6 +6,7 @@ export interface Hallazgo {
   estado: HallazgoEstado;
   riesgo: HallazgoRiesgo;
   titulo: string;
+  obraId?: number | null;
   reportero: string;
   fecha: string;
   sector: string;

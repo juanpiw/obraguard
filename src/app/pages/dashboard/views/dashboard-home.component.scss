@@ -49,6 +49,75 @@
   }
 }
 
+.kpi-card {
+  display: grid;
+  gap: 0.5rem;
+  padding: 1rem;
+  border-radius: 1rem;
+  background: #fff;
+  border: 1px solid #eef2ff;
+  box-shadow: 0 10px 20px rgba(15, 23, 42, 0.06);
+
+  .kpi-card__top {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    span {
+      font-weight: 700;
+      color: #111827;
+    }
+    .muted {
+      color: #6b7280;
+      font-size: 0.85rem;
+    }
+  }
+
+  .kpi-card__value {
+    margin: 0;
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #0f172a;
+  }
+
+  .kpi-card__actions {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .kpi-card__helper {
+    color: #6b7280;
+    font-size: 0.85rem;
+    margin: 0;
+  }
+
+  .btn {
+    padding: 0.35rem 0.85rem;
+    border-radius: 0.75rem;
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+  }
+
+  .btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .btn-link {
+    color: #2563eb;
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  .btn-link:hover {
+    text-decoration: underline;
+  }
+}
+
 .dashboard-home__analytics {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));

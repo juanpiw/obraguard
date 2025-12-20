@@ -28,6 +28,15 @@ export interface AnalyzeResponse {
   titulo?: string;
   causas?: string[];
   recomendaciones?: string[];
+  aiSuggestion?: {
+    peligro: string | null;
+    riesgo: string | null;
+    danio: string | null;
+    prob?: number | null;
+    cons?: number | null;
+    controles?: string[];
+    medidaControl?: string | null;
+  };
 }
 
 export interface HallazgoGetResponse {
@@ -35,6 +44,7 @@ export interface HallazgoGetResponse {
   estado?: HallazgoEstado | string;
   riesgo: HallazgoRiesgo;
   titulo: string;
+  obra_id?: number | string | null;
   reporter?: string | null;
   fecha?: string;
   sector?: string | null;
@@ -43,6 +53,7 @@ export interface HallazgoGetResponse {
   media_type?: string | null;
   cause_tree_id?: number | string | null;
   iper_file?: string | null;
+  iper_url?: string | null;
 }
 
 export interface CreateHallazgoPayload {
@@ -67,6 +78,7 @@ export interface HallazgoListItemResponse {
   estado?: HallazgoEstado;
   riesgo: HallazgoRiesgo;
   titulo: string;
+  obra_id?: number | string | null;
   reporter?: string | null;
   fecha?: string | null;
   sector?: string | null;
@@ -75,6 +87,7 @@ export interface HallazgoListItemResponse {
   media_type?: string | null;
   cause_tree_id?: number | string | null;
   iper_file?: string | null;
+  iper_url?: string | null;
 }
 
 export interface HallazgoStatsResponse {
@@ -191,12 +204,14 @@ export class HallazgosService {
 
     return this.http.post<{ data: any }>(`${API_BASE}/api/hallazgos`, form).pipe(
       map((resp) => {
-        const iperFile = resp.data?.iper?.fileName ?? resp.data?.iper?.iperFile ?? null;
+        const iperFile = resp.data?.iper?.fileName ?? resp.data?.iper?.iperFile ?? resp.data?.iperFile ?? null;
+        const iperUrl = resp.data?.iper_url || (iperFile ? `${API_BASE}/exports/${iperFile}` : null);
         const h: Hallazgo = {
           id: resp.data?.id ?? Date.now(),
           estado: (resp.data?.estado as HallazgoEstado) || 'Abierto',
           riesgo: payload.riesgo,
           titulo: payload.titulo,
+          obraId: (resp.data?.obraId as any) ?? payload.obraId ?? null,
           reportero: payload.anonimo ? 'Anónimo' : payload.reporter || 'Anónimo',
           fecha: new Date().toISOString().split('T')[0],
           sector: payload.sector || '',
@@ -205,7 +220,7 @@ export class HallazgosService {
           media_type: resp.data?.mediaType ?? null,
           causeTreeId: resp.data?.causeTreeId ?? null,
           iper_file: iperFile,
-          iper_url: iperFile ? `${API_BASE}/exports/${iperFile}` : null
+          iper_url: iperUrl
         };
         this.hallazgosSignal.update((current) => [...current, h]);
         return h;
@@ -219,10 +234,18 @@ export class HallazgosService {
       .pipe(map((resp) => resp.data));
   }
 
-  exportIper(obraId: number | string): Observable<{ iperFile: string; rows: number }> {
+  exportIper(obraId: number | string): Observable<{ iperFile: string; iperUrl?: string | null; rows: number }> {
     return this.http
-      .get<{ data: { iperFile: string; rows: number } }>(`${API_BASE}/api/iper/${obraId}/export`)
-      .pipe(map((resp) => resp.data));
+      .get<{ data: { iperFile: string; iperUrl?: string | null; rows: number } }>(`${API_BASE}/api/iper/${obraId}/export`)
+      .pipe(
+        map((resp) => {
+          const data = resp.data;
+          return {
+            ...data,
+            iperUrl: data?.iperUrl || (data?.iperFile ? `${API_BASE}/exports/${data.iperFile}` : null)
+          };
+        })
+      );
   }
 
   private mapHallazgo(row: HallazgoListItemResponse): Hallazgo {
@@ -232,6 +255,7 @@ export class HallazgosService {
       estado: (row.estado as HallazgoEstado) || 'Abierto',
       riesgo: row.riesgo,
       titulo: row.titulo,
+      obraId: (row as any).obra_id ?? (row as any).obraId ?? null,
       reportero: row.reporter || 'Anónimo',
       fecha: row.fecha || new Date().toISOString().split('T')[0],
       sector: row.sector || '',
@@ -240,7 +264,7 @@ export class HallazgosService {
       media_type: row.media_type ?? null,
       causeTreeId: row.cause_tree_id ?? null,
       iper_file: iperFile,
-      iper_url: iperFile ? `${API_BASE}/exports/${iperFile}` : null
+      iper_url: (row as any).iper_url || (iperFile ? `${API_BASE}/exports/${iperFile}` : null)
     };
   }
 }

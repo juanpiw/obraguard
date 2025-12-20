@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
+import { finalize } from 'rxjs';
 import { HallazgosService } from '../../../core/services/hallazgos.service';
 import { KpiCardComponent } from '../components/kpi-card/kpi-card.component';
 import { HallazgosTableComponent } from '../components/hallazgos-table/hallazgos-table.component';
@@ -37,6 +38,9 @@ export class DashboardHomeComponent {
 
   protected readonly hallazgos = this.hallazgosService.hallazgos;
   protected readonly stats = this.hallazgosService.stats;
+  protected readonly iperLink = signal<string | null>(null);
+  protected readonly iperExporting = signal(false);
+  protected readonly iperMessage = signal<string | null>(null);
 
   protected readonly kpiCards = computed<DashboardKpi[]>(() => {
     const st = this.stats();
@@ -99,8 +103,45 @@ export class DashboardHomeComponent {
 
   constructor() {
     // cargar valores reales desde backend
-    this.hallazgosService.loadHallazgos().subscribe();
+    this.hallazgosService
+      .loadHallazgos()
+      .pipe(finalize(() => this.refreshIperLink()))
+      .subscribe();
     this.hallazgosService.loadStats().subscribe();
+  }
+
+  protected exportIper(): void {
+    const obraId = this.detectObraId();
+    this.iperExporting.set(true);
+    this.iperMessage.set(null);
+    this.hallazgosService
+      .exportIper(obraId)
+      .pipe(
+        finalize(() => {
+          this.iperExporting.set(false);
+        })
+      )
+      .subscribe({
+        next: (resp) => {
+          const url = resp.iperUrl || (resp.iperFile ? `${location.origin}/exports/${resp.iperFile}` : null);
+          this.iperLink.set(url);
+          this.iperMessage.set('Matriz generada.');
+        },
+        error: (err) => {
+          console.error('[Dashboard][UI] export IPER error', err);
+          this.iperMessage.set('No se pudo generar el IPER.');
+        }
+      });
+  }
+
+  protected refreshIperLink(): void {
+    const firstWithIper = this.hallazgos().find((h) => !!h.iper_url);
+    this.iperLink.set(firstWithIper?.iper_url ?? null);
+  }
+
+  private detectObraId(): string | number {
+    const first = this.hallazgos().find((h) => h.obraId != null);
+    return first?.obraId ?? 'obra';
   }
 }
 
