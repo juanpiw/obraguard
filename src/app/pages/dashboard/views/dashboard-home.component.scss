@@ -12,6 +12,9 @@
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 1.25rem;
 }
+.dashboard-home__kpis .iper-list-card {
+  grid-column: 1 / -1;
+}
 
 .kpi-card--gradient {
   border-radius: 1.25rem;
@@ -291,6 +294,11 @@
 }
 
 .analytics--disabled {
+  pointer-events: none;
+  filter: grayscale(1);
+  opacity: 0.6;
+}
+.dashboard-home__split.analytics--disabled {
   pointer-events: none;
   filter: grayscale(1);
   opacity: 0.6;

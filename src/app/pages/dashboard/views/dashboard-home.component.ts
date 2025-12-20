@@ -65,7 +65,8 @@ export class DashboardHomeComponent {
               : `${newVs >= 0 ? '+' : ''}${newVs} vs semana pasada (nuevos)`,
         icon: 'alert',
         accent: 'red'
-      },
+      }
+    ,
       {
         label: 'Cerrados (Últ. 7d)',
         value: (st?.closedLast7Days ?? 0).toString(),
@@ -77,13 +78,6 @@ export class DashboardHomeComponent {
               : `Tiempo prom. cierre: ${avgClose.toFixed(1)} días`,
         icon: 'check',
         accent: 'green'
-      },
-      {
-        label: 'Charlas al día',
-        value: '—',
-        helper: 'Sin endpoint de charlas aún',
-        icon: 'document',
-        accent: 'blue'
       }
     ];
   });
