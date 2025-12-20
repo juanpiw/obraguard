@@ -71,6 +71,32 @@
   gap: 1.25rem;
 }
 
+.tabs {
+  display: inline-flex;
+  background: #0f172a;
+  border: 1px solid #1e293b;
+  border-radius: 999px;
+  padding: 0.25rem;
+  width: fit-content;
+  gap: 0.25rem;
+
+  button {
+    border: none;
+    background: transparent;
+    color: #94a3b8;
+    padding: 0.5rem 1rem;
+    border-radius: 999px;
+    font-weight: 600;
+    cursor: pointer;
+
+    &.tabs__btn--active {
+      background: #1d4ed8;
+      color: #fff;
+      box-shadow: 0 8px 18px rgba(29, 78, 216, 0.35);
+    }
+  }
+}
+
 .upload-field {
   label {
     display: block;
@@ -315,6 +341,52 @@
   border: 1px solid #c7d2fe;
   color: #4338ca;
   font-size: 0.9rem;
+}
+
+.ai-panel {
+  border: 1px solid #e2e8f0;
+  border-radius: 1rem;
+  padding: 1rem;
+  background: #f8fafc;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+
+    p {
+      margin: 0;
+      font-weight: 700;
+      color: #0f172a;
+    }
+
+    small {
+      color: #64748b;
+    }
+  }
+}
+
+.ai-result__label {
+  margin: 0 0 0.35rem;
+  color: #475569;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.ai-result__tag {
+  display: inline-block;
+  margin-top: 0.35rem;
+  padding: 0.25rem 0.6rem;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 999px;
+  font-weight: 700;
+  color: #0f172a;
+  font-size: 0.85rem;
 }
 
 .riesgo-grid {

@@ -11,6 +11,7 @@ import { firstValueFrom } from 'rxjs';
 
 const REPORTERO_DEFAULT = 'Carolina Vega (Prevencionista)';
 type CaptureMode = 'upload' | 'camera';
+type FormTab = 'manual' | 'auto';
 
 @Component({
   selector: 'app-hallazgo-modal',
@@ -30,8 +31,11 @@ export class HallazgoModalComponent {
 
   protected readonly aiLoading = signal(false);
   protected readonly aiMessage = signal<string | null>(null);
+  protected readonly aiDescripcion = signal<string | null>(null);
+  protected readonly aiRiesgo = signal<HallazgoRiesgo | null>(null);
   protected readonly submitting = signal(false);
   protected readonly captureMode = signal<CaptureMode>('upload');
+  protected readonly activeTab = signal<FormTab>('manual');
   protected readonly mediaPreview = signal<string | null>(null);
   protected readonly mediaName = signal<string | null>(null);
   protected readonly mediaIsImage = signal(true);
@@ -80,6 +84,8 @@ export class HallazgoModalComponent {
       const resp = await firstValueFrom(this.hallazgosService.analyzeEvidence(formData));
       this.form.get('riesgo')?.setValue(resp.riesgo);
       this.aiMessage.set(resp.descripcion);
+      this.aiDescripcion.set(resp.descripcion);
+      this.aiRiesgo.set(resp.riesgo);
       this.analyzedMediaId = resp.mediaId ?? null;
       this.analyzedMediaUrl = resp.mediaUrl ?? null;
       this.analyzedDescripcion = resp.descripcion ?? null;
@@ -145,6 +151,20 @@ export class HallazgoModalComponent {
     return this.captureMode() === mode;
   }
 
+  protected setTab(tab: FormTab): void {
+    this.activeTab.set(tab);
+  }
+
+  protected isActiveTab(tab: FormTab): boolean {
+    return this.activeTab() === tab;
+  }
+
+  protected onDescripcionChange(event: Event): void {
+    const value = (event.target as HTMLTextAreaElement).value;
+    this.aiDescripcion.set(value);
+    this.analyzedDescripcion = value;
+  }
+
   protected onMediaSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
@@ -177,6 +197,9 @@ export class HallazgoModalComponent {
     this.analyzedMediaId = null;
     this.analyzedMediaUrl = null;
     this.analyzedDescripcion = null;
+    this.aiDescripcion.set(null);
+    this.aiRiesgo.set(null);
+    this.aiMessage.set(null);
   }
 }
 

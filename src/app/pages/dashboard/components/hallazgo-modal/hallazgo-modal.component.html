@@ -16,6 +16,23 @@
         </header>
 
         <section class="hallazgo-form__body">
+          <div class="tabs">
+            <button
+              type="button"
+              [class.tabs__btn--active]="isActiveTab('manual')"
+              (click)="setTab('manual')"
+            >
+              Ingreso manual
+            </button>
+            <button
+              type="button"
+              [class.tabs__btn--active]="isActiveTab('auto')"
+              (click)="setTab('auto')"
+            >
+              Auto análisis (IA)
+            </button>
+          </div>
+
           <div class="capture-switch">
             <button type="button" [class.capture-switch__btn--active]="isActiveMode('upload')" (click)="setCaptureMode('upload')">
               Sube un archivo
@@ -90,32 +107,53 @@
             <input id="titulo" type="text" placeholder="Ej: Cable pelado en 2do piso" formControlName="titulo" />
           </div>
 
+          @if (isActiveTab('auto')) {
+            <div class="ai-panel">
+              <div class="ai-panel__header">
+                <div>
+                  <p>Auto análisis de evidencia</p>
+                  <small>IA describirá la imagen y sugerirá riesgo</small>
+                </div>
+                <button type="button" class="ai-button" (click)="analyzeRisk()" [disabled]="aiLoading()">
+                  @if (aiLoading()) {
+                    <svg class="ai-button__spinner" viewBox="0 0 24 24">
+                      <circle class="path" cx="12" cy="12" r="10"></circle>
+                    </svg>
+                    Analizando...
+                  } @else {
+                    <svg viewBox="0 0 24 24" stroke-width="1.5" fill="none">
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.898 20.622L16.125 18l-.773 2.622a.75.75 0 001.546 0z"
+                      />
+                    </svg>
+                    Analizar IA
+                  }
+                </button>
+              </div>
+              <div class="ai-result">
+                <p class="ai-result__label">Descripción IA</p>
+                <textarea
+                  rows="3"
+                  [value]="aiDescripcion() || ''"
+                  (input)="onDescripcionChange($event)"
+                  placeholder="La IA completará esta descripción después del análisis..."
+                ></textarea>
+                @if (aiRiesgo()) {
+                  <span class="ai-result__tag">Riesgo sugerido: {{ aiRiesgo() }}</span>
+                }
+              </div>
+              @if (aiMessage() && !aiDescripcion()) {
+                <div class="ai-result">
+                  <p>{{ aiMessage() }}</p>
+                </div>
+              }
+            </div>
+          }
+
           <div class="form-field">
             <label>Nivel de Riesgo</label>
-            <button type="button" class="ai-button" (click)="analyzeRisk()" [disabled]="aiLoading()">
-              @if (aiLoading()) {
-                <svg class="ai-button__spinner" viewBox="0 0 24 24">
-                  <circle class="path" cx="12" cy="12" r="10"></circle>
-                </svg>
-                Analizando descripción...
-              } @else {
-                <svg viewBox="0 0 24 24" stroke-width="1.5" fill="none">
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.898 20.622L16.125 18l-.773 2.622a.75.75 0 001.546 0z"
-                  />
-                </svg>
-                Analizar Riesgo con IA
-              }
-            </button>
-
-            @if (aiMessage()) {
-              <div class="ai-result">
-                <p>{{ aiMessage() }}</p>
-              </div>
-            }
-
             <div class="riesgo-grid" role="radiogroup">
               <label>
                 <input type="radio" formControlName="riesgo" value="Alto" />
