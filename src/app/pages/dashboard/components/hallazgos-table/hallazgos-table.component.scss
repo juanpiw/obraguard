@@ -32,6 +32,22 @@
   tr:last-child td {
     border-bottom: none;
   }
+
+  .iper-cell {
+    a {
+      color: #2563eb;
+      font-weight: 600;
+      text-decoration: none;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+
+    .iper-empty {
+      color: #9ca3af;
+    }
+  }
 }
 
 .status-pill {

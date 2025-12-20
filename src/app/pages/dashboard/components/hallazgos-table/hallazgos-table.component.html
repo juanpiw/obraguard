@@ -8,6 +8,7 @@
         <th>Reportado por</th>
         <th>Fecha</th>
         <th>Sector</th>
+        <th>IPER</th>
       </tr>
     </thead>
     <tbody>
@@ -19,6 +20,13 @@
           <td>{{ hallazgo.reportero }}</td>
           <td>{{ hallazgo.fecha | date: 'dd MMM yyyy' }}</td>
           <td>{{ hallazgo.sector }}</td>
+          <td class="iper-cell">
+            @if (hallazgo.iper_url) {
+              <a [href]="hallazgo.iper_url" target="_blank" rel="noopener">Descargar</a>
+            } @else {
+              <span class="iper-empty">—</span>
+            }
+          </td>
         </tr>
       }
     </tbody>

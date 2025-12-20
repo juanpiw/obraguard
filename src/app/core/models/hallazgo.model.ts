@@ -13,6 +13,8 @@ export interface Hallazgo {
   media_url?: string | null;
   media_type?: string | null;
   causeTreeId?: number | string | null;
+  iper_file?: string | null;
+  iper_url?: string | null;
 }
 
 

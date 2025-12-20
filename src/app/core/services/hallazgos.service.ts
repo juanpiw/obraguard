@@ -42,6 +42,7 @@ export interface HallazgoGetResponse {
   media_url?: string | null;
   media_type?: string | null;
   cause_tree_id?: number | string | null;
+  iper_file?: string | null;
 }
 
 export interface CreateHallazgoPayload {
@@ -73,6 +74,7 @@ export interface HallazgoListItemResponse {
   media_url?: string | null;
   media_type?: string | null;
   cause_tree_id?: number | string | null;
+  iper_file?: string | null;
 }
 
 export interface HallazgoStatsResponse {
@@ -189,6 +191,7 @@ export class HallazgosService {
 
     return this.http.post<{ data: any }>(`${API_BASE}/api/hallazgos`, form).pipe(
       map((resp) => {
+        const iperFile = resp.data?.iper?.fileName ?? resp.data?.iper?.iperFile ?? null;
         const h: Hallazgo = {
           id: resp.data?.id ?? Date.now(),
           estado: (resp.data?.estado as HallazgoEstado) || 'Abierto',
@@ -200,7 +203,9 @@ export class HallazgosService {
           descripcion_ai: payload.descripcion_ai ?? null,
           media_url: resp.data?.mediaUrl ?? null,
           media_type: resp.data?.mediaType ?? null,
-          causeTreeId: resp.data?.causeTreeId ?? null
+          causeTreeId: resp.data?.causeTreeId ?? null,
+          iper_file: iperFile,
+          iper_url: iperFile ? `${API_BASE}/exports/${iperFile}` : null
         };
         this.hallazgosSignal.update((current) => [...current, h]);
         return h;
@@ -221,6 +226,7 @@ export class HallazgosService {
   }
 
   private mapHallazgo(row: HallazgoListItemResponse): Hallazgo {
+    const iperFile = row.iper_file || null;
     return {
       id: Number(row.id),
       estado: (row.estado as HallazgoEstado) || 'Abierto',
@@ -232,7 +238,9 @@ export class HallazgosService {
       descripcion_ai: row.descripcion_ai ?? null,
       media_url: row.media_url ?? null,
       media_type: row.media_type ?? null,
-      causeTreeId: row.cause_tree_id ?? null
+      causeTreeId: row.cause_tree_id ?? null,
+      iper_file: iperFile,
+      iper_url: iperFile ? `${API_BASE}/exports/${iperFile}` : null
     };
   }
 }
