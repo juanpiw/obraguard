@@ -8,11 +8,16 @@ import {
 import { Observable, catchError, map, of, tap } from 'rxjs';
 import { CauseNode } from '../models/cause-tree.model';
 
+const ENV_API_URL = (import.meta as { env?: Record<string, string> }).env?.['NG_APP_API_URL'];
+const isLocalhost =
+  typeof window !== 'undefined' &&
+  (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+const LOCAL_FALLBACK = isLocalhost ? `http://${window.location.hostname}:4000` : null;
 const API_BASE =
   (globalThis as { AF_API_URL?: string }).AF_API_URL ||
-  (import.meta as { env?: Record<string, string> }).env?.['NG_APP_API_URL'] ||
-  'https://www.api.thefutureagencyai.com' ||
-  (typeof window !== 'undefined' ? window.location.origin : '');
+  ENV_API_URL ||
+  LOCAL_FALLBACK ||
+  'https://www.api.thefutureagencyai.com';
 
 export interface AnalyzeResponse {
   descripcion: string;

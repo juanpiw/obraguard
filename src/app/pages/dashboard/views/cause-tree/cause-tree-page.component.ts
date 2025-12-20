@@ -430,6 +430,14 @@ export class CauseTreePageComponent {
     this.error.set(null);
     this.modalAiWorking.set(true);
 
+    console.log('[CauseTree][UI] resolveAiFromModal -> suggestNode start', {
+      treeId: id,
+      mode,
+      contextNodeId,
+      parentText: contextNode.text,
+      parentType: contextNode.type
+    });
+
     this.service
       .suggestNode(id, {
         parentText: contextNode.text,
@@ -443,6 +451,7 @@ export class CauseTreePageComponent {
       .pipe(finalize(() => this.modalAiWorking.set(false)), takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (resp) => {
+          console.log('[CauseTree][UI] resolveAiFromModal -> suggestNode ok', resp);
           this.modalAiPrefillText.set(resp.text);
           this.modalAiPrefillType.set(resp.type as CauseNodeType);
           this.modalAiPrefillNotes.set(resp.notes || '');
