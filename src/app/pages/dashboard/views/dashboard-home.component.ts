@@ -177,7 +177,12 @@ export class DashboardHomeComponent {
       },
       error: (err) => {
         console.error('[Dashboard][UI] delete IPER error', err);
-        this.iperMessage.set('No se pudo eliminar el IPER.');
+        if (err?.status === 404) {
+          this.iperMessage.set('El archivo no existe, se limpió la lista.');
+          this.hallazgosService.loadHallazgos().subscribe();
+        } else {
+          this.iperMessage.set('No se pudo eliminar el IPER.');
+        }
         this.iperDeleting.set(null);
       }
     });

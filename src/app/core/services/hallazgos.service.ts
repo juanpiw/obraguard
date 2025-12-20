@@ -282,6 +282,13 @@ export class HallazgosService {
   deleteIper(file: string): Observable<{ deleted: boolean }> {
     return this.http.delete<{ data: { deleted: boolean } }>(`${API_BASE}/api/iper/file/${encodeURIComponent(file)}`).pipe(
       map((resp) => resp.data || { deleted: false }),
+      catchError((err) => {
+        // Si el backend responde 404 (no existe), consideramos eliminado para limpiar la lista.
+        if (err?.status === 404) {
+          return of({ deleted: true });
+        }
+        throw err;
+      }),
       tap((resp) => {
         if (resp?.deleted) {
           this.hallazgosSignal.update((items) =>
