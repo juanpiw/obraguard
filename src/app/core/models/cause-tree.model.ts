@@ -42,3 +42,4 @@ export interface UpdateCausePayload {
   text: string;
   type: CauseNodeType;
 }
+

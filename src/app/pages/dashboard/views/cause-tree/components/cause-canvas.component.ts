@@ -3,13 +3,16 @@ import {
   Component,
   ElementRef,
   EventEmitter,
+  Inject,
   Input,
   OnChanges,
   Output,
+  PLATFORM_ID,
   SimpleChanges,
   ViewChild
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { isPlatformBrowser } from '@angular/common';
 import { CauseNode } from '../../../../../core/models/cause-tree.model';
 import { CauseNodeComponent } from './cause-node.component';
 
@@ -52,8 +55,15 @@ export class CauseCanvasComponent implements AfterViewInit, OnChanges {
   private touchStartY = 0;
   private touchScrollLeft = 0;
   private touchScrollTop = 0;
+  private readonly isBrowser: boolean;
+
+  constructor(@Inject(PLATFORM_ID) platformId: object) {
+    this.isBrowser = isPlatformBrowser(platformId);
+  }
 
   ngAfterViewInit(): void {
+    if (!this.isBrowser) return;
+
     const canvas = this.canvasRef?.nativeElement;
     if (canvas) {
       this.isRowReverse = getComputedStyle(canvas).flexDirection === 'row-reverse';
@@ -233,6 +243,8 @@ export class CauseCanvasComponent implements AfterViewInit, OnChanges {
   }
 
   private centerRoot(): void {
+    if (!this.isBrowser) return;
+
     const canvas = this.canvasRef?.nativeElement;
     if (!canvas) return;
     // En row-reverse, el “inicio visual” está a la derecha; este centrado mantiene
@@ -241,3 +253,4 @@ export class CauseCanvasComponent implements AfterViewInit, OnChanges {
     canvas.scrollTop = Math.max(0, canvas.scrollTop);
   }
 }
+

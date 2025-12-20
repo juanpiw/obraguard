@@ -26,3 +26,4 @@ export class ReportFichaComponent {
   @Output() save = new EventEmitter<ReportFicha>();
 }
 
+

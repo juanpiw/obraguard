@@ -9,3 +9,4 @@
     window.AF_API_URL = 'https://www.api.thefutureagencyai.com';
   }
 })();
+

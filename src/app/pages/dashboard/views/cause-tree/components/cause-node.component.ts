@@ -44,3 +44,4 @@ export class CauseNodeComponent {
     this.editNode.emit(this.node);
   }
 }
+

@@ -13,3 +13,4 @@ export class AiToastComponent {
   @Input() message = 'Analizando hallazgo y correlacionando causas.';
   @Input() visible = false;
 }
+
