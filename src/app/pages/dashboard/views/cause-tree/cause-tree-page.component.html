@@ -16,7 +16,7 @@
         [disabled]="aiStatus() === 'working'"
         (click)="generateAiTree()"
       >
-        <span *ngIf="aiStatus() !== 'working'">Generar con IA</span>
+        <span *ngIf="aiStatus() !== 'working'">Resolver con IA</span>
         <span *ngIf="aiStatus() === 'working'">Trabajando...</span>
       </button>
       <button class="primary" type="button">Generar PDF</button>
@@ -39,6 +39,18 @@
           class="history-item"
           (click)="selectTree(item.id)"
         >
+          <span
+            class="history-item__delete"
+            role="button"
+            tabindex="0"
+            (click)="deleteTree(item.id); $event.stopPropagation()"
+            (keydown.enter)="deleteTree(item.id); $event.stopPropagation()"
+            (keydown.space)="deleteTree(item.id); $event.preventDefault(); $event.stopPropagation()"
+            aria-label="Eliminar árbol"
+            title="Eliminar árbol"
+          >
+            Eliminar
+          </span>
           <span>#{{ item.id }}</span>
           <small *ngIf="item.hallazgoId">Hallazgo: {{ item.hallazgoId }}</small>
           <small *ngIf="item.updatedAt">{{ item.updatedAt | date: 'short' }}</small>
@@ -59,11 +71,14 @@
     [open]="modalOpen()"
     [mode]="modalMode()"
     [saving]="saving()"
+    [aiEnabled]="!!causeTreeId()"
+    [aiWorking]="aiStatus() === 'working'"
     [initialText]="modalInitialText()"
     [initialType]="modalInitialType()"
     [initialNotes]="modalInitialNotes()"
     [initialChildrenLogic]="modalInitialChildrenLogic()"
     (cancel)="closeModal()"
+    (resolveAi)="resolveAiFromModal()"
     (save)="saveNode($event)"
   ></app-node-modal>
 

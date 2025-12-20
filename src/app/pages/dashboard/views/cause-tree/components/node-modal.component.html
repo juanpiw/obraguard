@@ -2,7 +2,19 @@
   <div class="modal__backdrop" (click)="cancel.emit()"></div>
   <div class="modal__content" role="dialog" aria-modal="true">
     <header class="modal__header">
-      <h3>{{ mode === 'add' ? 'Añadir causa' : 'Editar hecho' }}</h3>
+      <div class="modal__title">
+        <h3>{{ mode === 'add' ? 'Añadir causa' : 'Editar hecho' }}</h3>
+        <button
+          type="button"
+          class="ai-btn ai-btn--small"
+          [disabled]="!aiEnabled || aiWorking || saving"
+          (click)="handleResolveAi()"
+          title="Autocompleta esta causa con IA usando el hallazgo como base"
+        >
+          <span *ngIf="!aiWorking">Resolver con IA</span>
+          <span *ngIf="aiWorking">IA...</span>
+        </button>
+      </div>
       <button type="button" class="icon-btn" (click)="cancel.emit()" aria-label="Cerrar">
         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />

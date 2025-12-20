@@ -358,6 +358,19 @@ export class CauseTreePageComponent {
       });
   }
 
+  protected resolveAiFromModal(): void {
+    // Si no hay id, no sirve llamar IA (el endpoint requiere árbol existente).
+    const id = this.causeTreeId();
+    if (!id) {
+      this.error.set('Primero guarda/abre un árbol existente (necesitamos ?id=) para resolver con IA.');
+      return;
+    }
+
+    // Cerramos el modal y generamos el árbol completo a partir del hallazgo asociado.
+    this.closeModal();
+    this.generateAiTree();
+  }
+
   protected resetTree(): void {
     this.error.set(null);
     this.aiStatus.set('idle');
@@ -379,6 +392,35 @@ export class CauseTreePageComponent {
       queryParams: { id },
       queryParamsHandling: 'merge'
     });
+  }
+
+  protected deleteTree(id: number | string): void {
+    if (!id) return;
+    const ok = typeof window !== 'undefined' ? window.confirm(`¿Eliminar el árbol #${id}?`) : true;
+    if (!ok) return;
+
+    this.error.set(null);
+    this.saving.set(true);
+    this.service
+      .deleteTree(id)
+      .pipe(finalize(() => this.saving.set(false)), takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          // si estabas viendo este árbol, quitamos el id para evitar 404
+          if (String(this.causeTreeId() || '') === String(id)) {
+            void this.router.navigate([], {
+              relativeTo: this.route,
+              queryParams: { id: null },
+              queryParamsHandling: 'merge'
+            });
+          }
+          this.loadHistory();
+        },
+        error: (err) => {
+          console.error('[CauseTree][UI] delete error', err);
+          this.error.set('No se pudo eliminar el árbol. Revisa conexión o vuelve a intentar.');
+        }
+      });
   }
 
   private persistTree(root: CauseNode, meta: Record<string, any> = { source: 'ui_edit' }): void {

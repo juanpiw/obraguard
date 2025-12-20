@@ -43,6 +43,47 @@
   }
 }
 
+.modal__title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+
+  h3 {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+.ai-btn {
+  border-radius: 0.75rem;
+  padding: 0.55rem 0.85rem;
+  border: 1px solid #374151;
+  background: #111827;
+  color: #e5e7eb;
+  cursor: pointer;
+  font-weight: 800;
+  transition: all 0.15s ease;
+}
+
+.ai-btn:hover {
+  border-color: rgba(245, 158, 11, 0.8);
+  background: rgba(245, 158, 11, 0.12);
+  color: #fff;
+}
+
+.ai-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.ai-btn--small {
+  padding: 0.45rem 0.7rem;
+  font-size: 0.85rem;
+  border-radius: 0.65rem;
+}
+
 .modal__body {
   display: flex;
   flex-direction: column;

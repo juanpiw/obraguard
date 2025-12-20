@@ -173,6 +173,32 @@
   flex-direction: column;
   gap: 0.1rem;
   transition: border 0.15s ease, background 0.15s ease;
+  position: relative;
+}
+
+.history-item__delete {
+  position: absolute;
+  top: 0.55rem;
+  right: 0.6rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 800;
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  background: rgba(239, 68, 68, 0.12);
+  color: #fecaca;
+  cursor: pointer;
+  user-select: none;
+}
+
+.history-item__delete:hover {
+  background: rgba(239, 68, 68, 0.18);
+  border-color: rgba(239, 68, 68, 0.55);
+}
+
+.history-item__delete:focus {
+  outline: 2px solid rgba(239, 68, 68, 0.65);
+  outline-offset: 2px;
 }
 
 .history-item--active {

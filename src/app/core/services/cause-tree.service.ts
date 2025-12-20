@@ -33,6 +33,23 @@ export interface GenerateAiPayload {
   mode?: 'overwrite' | 'merge';
 }
 
+export interface SuggestNodePayload {
+  parentText: string;
+  parentType: string;
+  currentDraft?: { text?: string; type?: string; notes?: string | null } | null;
+}
+
+export interface SuggestNodeResponse {
+  text: string;
+  type: string;
+  notes: string | null;
+}
+
+export interface DeleteTreeResponse {
+  id: number | string;
+  deleted: boolean;
+}
+
 export interface CreateTreePayload {
   hallazgoId?: number | string | null;
   root: CauseNode;
@@ -100,6 +117,18 @@ export class CauseTreeService {
   generateAi(id: number | string, payload: GenerateAiPayload = {}): Observable<CauseTreeResponse> {
     return this.http
       .post<{ data: CauseTreeResponse }>(`${API_BASE}/api/cause-trees/${id}/generate`, payload)
+      .pipe(map((resp) => resp.data));
+  }
+
+  suggestNode(id: number | string, payload: SuggestNodePayload): Observable<SuggestNodeResponse> {
+    return this.http
+      .post<{ data: SuggestNodeResponse }>(`${API_BASE}/api/cause-trees/${id}/suggest-node`, payload)
+      .pipe(map((resp) => resp.data));
+  }
+
+  deleteTree(id: number | string): Observable<DeleteTreeResponse> {
+    return this.http
+      .delete<{ data: DeleteTreeResponse }>(`${API_BASE}/api/cause-trees/${id}`)
       .pipe(map((resp) => resp.data));
   }
 }

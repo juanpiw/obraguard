@@ -16,12 +16,19 @@ export class NodeModalComponent implements OnChanges {
   @Input() open = false;
   @Input() mode: NodeModalMode = 'add';
   @Input() saving = false;
+  @Input() aiEnabled = true;
+  @Input() aiWorking = false;
+  @Input() aiPrefillRequestId: number | null = null;
+  @Input() aiPrefillText: string | null = null;
+  @Input() aiPrefillType: CauseNodeType | null = null;
+  @Input() aiPrefillNotes: string | null = null;
   @Input() initialText = '';
   @Input() initialType: CauseNodeType = 'Condición';
   @Input() initialNotes = '';
   @Input() initialChildrenLogic: CauseChildrenLogic = 'AND';
 
   @Output() cancel = new EventEmitter<void>();
+  @Output() resolveAi = new EventEmitter<void>();
   @Output() save = new EventEmitter<{
     text: string;
     type: CauseNodeType;
@@ -33,6 +40,7 @@ export class NodeModalComponent implements OnChanges {
   protected selectedType: CauseNodeType = 'Condición';
   protected notes = '';
   protected childrenLogic: CauseChildrenLogic = 'AND';
+  private lastAiPrefillRequestId: number | null = null;
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['open'] && this.open) {
@@ -40,6 +48,17 @@ export class NodeModalComponent implements OnChanges {
       this.selectedType = this.initialType || 'Condición';
       this.notes = this.initialNotes || '';
       this.childrenLogic = this.initialChildrenLogic || 'AND';
+    }
+
+    // Cuando llega una sugerencia IA, autocompletamos sin cerrar el modal
+    if (this.open && changes['aiPrefillRequestId']) {
+      const rid = this.aiPrefillRequestId;
+      if (rid != null && rid !== this.lastAiPrefillRequestId) {
+        this.lastAiPrefillRequestId = rid;
+        if (this.aiPrefillText != null) this.text = this.aiPrefillText;
+        if (this.aiPrefillType != null) this.selectedType = this.aiPrefillType;
+        if (this.aiPrefillNotes != null) this.notes = this.aiPrefillNotes;
+      }
     }
   }
 
@@ -70,6 +89,11 @@ export class NodeModalComponent implements OnChanges {
       notes: this.notes.trim(),
       childrenLogic: this.childrenLogic
     });
+  }
+
+  protected handleResolveAi(): void {
+    if (!this.aiEnabled || this.aiWorking || this.saving) return;
+    this.resolveAi.emit();
   }
 
   private looksLikeJudgementOrInterpretation(text: string): boolean {
