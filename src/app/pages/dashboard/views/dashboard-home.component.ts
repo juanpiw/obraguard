@@ -147,6 +147,13 @@ export class DashboardHomeComponent {
       });
   }
 
+  protected goToPtsArt(mode: 'pts' | 'art'): void {
+    const link = this.iperLink();
+    const obraId = this.detectObraId();
+    const url = link ? `/app/pts-art?file=${encodeURIComponent(link.split('/').pop() || '')}&obraId=${obraId}&mode=${mode}` : `/app/pts-art?obraId=${obraId}&mode=${mode}`;
+    window.location.href = url;
+  }
+
   private detectObraId(): string | number {
     const first = this.hallazgos().find((h) => h.obraId != null);
     return first?.obraId ?? 'obra';

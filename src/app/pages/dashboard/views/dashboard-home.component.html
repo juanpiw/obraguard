@@ -44,8 +44,8 @@
       <div class="kpi-card__actions">
         @if (iperLink()) {
           <a class="btn-link" [href]="iperLink()!" target="_blank" rel="noopener">Descargar</a>
-          <button type="button" class="btn btn-ghost">PTS Planificación</button>
-          <button type="button" class="btn btn-ghost">ART Gestión Dinámica</button>
+          <button type="button" class="btn btn-ghost" (click)="goToPtsArt('pts')">PTS Planificación</button>
+          <button type="button" class="btn btn-ghost" (click)="goToPtsArt('art')">ART Gestión Dinámica</button>
         }
         <button type="button" class="btn" (click)="exportIper()" [disabled]="iperExporting()">
           {{ iperExporting() ? 'Generando...' : 'Generar IPER' }}

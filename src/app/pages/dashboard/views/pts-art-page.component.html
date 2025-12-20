@@ -44,6 +44,19 @@
           <strong>Procedimiento de Trabajo Seguro (PTS)</strong> y el
           <strong>Análisis de Riesgo del Trabajo (ART)</strong>.
         </p>
+        @if (file() || obraId()) {
+          <div class="hero__meta">
+            @if (file()) {
+              <span class="pill pill--blue">IPER: {{ file() }}</span>
+            }
+            @if (obraId()) {
+              <span class="pill pill--purple">Obra: {{ obraId() }}</span>
+            }
+            @if (mode()) {
+              <span class="pill pill--orange">Modo: {{ mode() === 'pts' ? 'PTS' : 'ART' }}</span>
+            }
+          </div>
+        }
         <div class="hero__cards">
           <div class="hero-card hero-card--pts">
             <h3><span class="icon-clock"></span>PTS (Planificación)</h3>
@@ -265,6 +278,61 @@
             "La excelencia en prevención no se mide por la cantidad de papel archivado, sino por la calidad de la discusión
             que estos documentos provocan en el frente de trabajo."
           </div>
+        </section>
+
+        <!-- Datos desde IPER -->
+        <section class="section iper-data">
+          <h2>Datos importados desde IPER</h2>
+          @if (loading()) {
+            <p>Cargando IPER...</p>
+          } @else if (error()) {
+            <p class="text-red">Error: {{ error() }}</p>
+          } @else if (hasData()) {
+            <div class="iper-data__list">
+              @for (row of iperRows(); track row.fila) {
+                <div class="iper-row">
+                  <div class="iper-row__header">
+                    <span class="pill pill--blue">Fila {{ row.fila }}</span>
+                    @if (row.riesgo) {
+                      <span class="pill pill--orange">{{ row.riesgo }}</span>
+                    }
+                  </div>
+                  <p class="iper-row__title">{{ row.titulo || 'Sin título' }}</p>
+                  <div class="iper-row__grid">
+                    <div>
+                      <small class="muted">Peligro</small>
+                      <p>{{ row.peligro || '—' }}</p>
+                    </div>
+                    <div>
+                      <small class="muted">Daño</small>
+                      <p>{{ row.danio || '—' }}</p>
+                    </div>
+                    <div>
+                      <small class="muted">Prob / Cons</small>
+                      <p>{{ row.prob || '—' }} / {{ row.cons || '—' }}</p>
+                    </div>
+                    <div>
+                      <small class="muted">Control</small>
+                      <p>{{ row.control || '—' }}</p>
+                    </div>
+                    <div>
+                      <small class="muted">Responsable</small>
+                      <p>{{ row.responsable || '—' }}</p>
+                    </div>
+                    <div>
+                      <small class="muted">Plazo</small>
+                      <p>{{ row.plazo || '—' }}</p>
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+          } @else {
+            <p class="muted">No hay datos IPER para mostrar.</p>
+          }
+          @if (file()) {
+            <a class="btn-download" [href]="'/exports/' + file()" target="_blank" rel="noopener">Descargar IPER</a>
+          }
         </section>
       </div>
     </main>
