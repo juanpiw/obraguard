@@ -30,7 +30,7 @@ export interface CreateHallazgoPayload {
   sector?: string;
   descripcion_ai?: string;
   causas?: string[];
-  reportero?: string;
+  reporter?: string;
   anonimo?: boolean;
   mediaId?: number | null;
   meta?: 'normal' | 'telefono' | 'arbol';
@@ -93,7 +93,7 @@ export class HallazgosService {
             estado: 'Abierto',
             riesgo: payload.riesgo,
             titulo: payload.titulo,
-            reportero: payload.anonimo ? 'Anónimo' : payload.reportero || 'Anónimo',
+            reportero: payload.anonimo ? 'Anónimo' : payload.reporter || 'Anónimo',
             fecha: new Date().toISOString().split('T')[0],
             sector: payload.sector || '',
             descripcion_ai: payload.descripcion_ai ?? null,

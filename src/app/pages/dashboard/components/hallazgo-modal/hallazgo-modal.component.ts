@@ -146,7 +146,7 @@ export class HallazgoModalComponent {
         titulo: this.form.get('titulo')?.value ?? '',
         riesgo: (this.form.get('riesgo')?.value ?? 'Medio') as HallazgoRiesgo,
         sector: this.form.get('sector')?.value ?? '',
-        reportero: reporter,
+        reporter,
         anonimo: this.anonimo,
         descripcion_ai: this.analyzedDescripcion ?? undefined,
         causas: this.aiCausas() ?? [],
@@ -159,24 +159,30 @@ export class HallazgoModalComponent {
       const saved = await firstValueFrom(this.hallazgosService.createHallazgo(payload));
       console.log('[Hallazgos][UI] handleSubmit success', { mode, saved });
 
-      this.submitted.emit(
-        mode === 'telefono'
-          ? `Hallazgo "${payload.titulo}" enviado para gestión telefónica.`
-          : mode === 'arbol'
-            ? `Hallazgo "${payload.titulo}" enviado con árbol de causa.`
-            : `Hallazgo "${payload.titulo}" reportado con éxito.`
-      );
       if (mode === 'arbol') {
         const causeTreeId = saved?.causeTreeId ?? null;
         if (!causeTreeId) {
-          console.error('[Hallazgos][UI] No causeTreeId returned, staying in modal', { saved });
-          this.aiMessage.set('No se pudo crear el árbol de causas. Intenta nuevamente.');
-          return;
+          console.error('[Hallazgos][UI] No causeTreeId returned, navigating with prefill', { saved });
+          this.submitted.emit(
+            `Hallazgo "${payload.titulo}" creado, pero no se pudo guardar el árbol. Abriendo árbol con datos pre-cargados.`
+          );
+          void this.router.navigate(['/app/arbol-causas'], {
+            state: { prefillRoot: rootJson, prefillHallazgo: saved }
+          });
+        } else {
+          this.submitted.emit(`Hallazgo "${payload.titulo}" enviado con árbol de causa.`);
+          console.log('[Hallazgos][UI] navigate to arbol-causas', { causeTreeId });
+          void this.router.navigate(['/app/arbol-causas'], {
+            queryParams: { id: causeTreeId },
+            state: { prefillRoot: rootJson, prefillHallazgo: saved }
+          });
         }
-        console.log('[Hallazgos][UI] navigate to arbol-causas', { causeTreeId });
-        void this.router.navigate(['/app/arbol-causas'], {
-          queryParams: { id: causeTreeId }
-        });
+      } else {
+        this.submitted.emit(
+          mode === 'telefono'
+            ? `Hallazgo "${payload.titulo}" enviado para gestión telefónica.`
+            : `Hallazgo "${payload.titulo}" reportado con éxito.`
+        );
       }
       this.form.reset({
         titulo: '',

@@ -96,6 +96,7 @@ export class CauseTreePageComponent {
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
   private readonly selectedTreeId = signal<string | null>(this.route.snapshot.queryParamMap.get('id'));
+  private readonly prefillRoot = signal<CauseNode | null>(null);
 
   protected readonly loading = signal(true);
   protected readonly saving = signal(false);
@@ -113,6 +114,7 @@ export class CauseTreePageComponent {
   );
 
   constructor() {
+    this.readPrefillState();
     this.loadHistory();
     this.loadTree(this.causeTreeId());
     this.route.queryParamMap
@@ -122,6 +124,21 @@ export class CauseTreePageComponent {
         this.selectedTreeId.set(id);
         this.loadTree(id);
       });
+  }
+
+  private readPrefillState(): void {
+    // En navegación desde hallazgos, mandamos el árbol como state para fallback si el GET falla.
+    const st = (this.router.getCurrentNavigation()?.extras?.state ?? history.state) as any;
+    const root = st?.prefillRoot as CauseNode | undefined;
+    if (root && typeof root === 'object') {
+      this.prefillRoot.set(root);
+      // Si no viene id, mostramos inmediatamente el árbol pre-cargado
+      if (!this.causeTreeId()) {
+        this.tree.set(root);
+        this.loading.set(false);
+        this.error.set(null);
+      }
+    }
   }
 
   protected loadHistory(): void {
@@ -138,7 +155,7 @@ export class CauseTreePageComponent {
             }))
           );
           // Si no hay id seleccionado y tenemos historial, redirigimos al primero
-          if (!this.causeTreeId() && items[0]?.id) {
+          if (!this.causeTreeId() && !this.prefillRoot() && items[0]?.id) {
             void this.router.navigate([], {
               relativeTo: this.route,
               queryParams: { id: items[0].id },
@@ -158,6 +175,12 @@ export class CauseTreePageComponent {
     this.error.set(null);
     const id = idParam ?? this.causeTreeId();
     if (!id) {
+      // Si venimos desde hallazgos con state, preferimos ese árbol antes que demo.
+      if (this.prefillRoot()) {
+        this.tree.set(this.prefillRoot());
+        this.loading.set(false);
+        return;
+      }
       this.error.set('Selecciona o pasa un id de árbol (?id=). Mostrando demo.');
       this.tree.set(DEMO_TREE);
       this.loading.set(false);
@@ -174,6 +197,11 @@ export class CauseTreePageComponent {
       .subscribe({
         error: (err) => {
           console.error('[CauseTree][UI] tree load error', err);
+          if (this.prefillRoot()) {
+            this.error.set('No se pudo cargar el árbol guardado. Mostrando árbol pre-cargado desde hallazgo.');
+            this.tree.set(this.prefillRoot());
+            return;
+          }
           this.error.set('No se pudo cargar el árbol. Mostrando datos de ejemplo.');
           this.tree.set(DEMO_TREE);
         }
