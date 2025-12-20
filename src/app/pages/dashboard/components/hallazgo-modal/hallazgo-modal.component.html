@@ -105,6 +105,9 @@
           <div class="form-field">
             <label for="titulo">Título / Descripción breve</label>
             <input id="titulo" type="text" placeholder="Ej: Cable pelado en 2do piso" formControlName="titulo" />
+            @if (form.get('titulo')?.touched && form.get('titulo')?.invalid) {
+              <small class="field-error">Ingresa un título (mínimo 6 caracteres).</small>
+            }
           </div>
 
           @if (isActiveTab('auto')) {
@@ -178,6 +181,9 @@
           <div class="form-field">
             <label for="sector">Sector / Ubicación</label>
             <input id="sector" type="text" placeholder="Ej: Torre B, Piso 2, Baño B-201" formControlName="sector" />
+            @if (form.get('sector')?.touched && form.get('sector')?.invalid) {
+              <small class="field-error">Ingresa el sector/ubicación (mínimo 3 caracteres).</small>
+            }
           </div>
 
           <div class="form-checkbox">
@@ -259,7 +265,7 @@
               </div>
               <div class="submit-modal__actions">
                 <button type="button" class="btn-secondary" (click)="toggleSubmitOptions()">Volver</button>
-                <button type="button" class="btn-primary" [disabled]="submitting()" (click)="confirmSubmit()">
+                <button type="button" class="btn-primary" [disabled]="submitting() || form.invalid" (click)="confirmSubmit()">
                   Confirmar envío
                 </button>
               </div>

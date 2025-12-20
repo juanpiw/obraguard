@@ -128,7 +128,9 @@ export class CauseTreePageComponent {
 
   private readPrefillState(): void {
     // En navegación desde hallazgos, mandamos el árbol como state para fallback si el GET falla.
-    const st = (this.router.getCurrentNavigation()?.extras?.state ?? history.state) as any;
+    const browserState =
+      typeof window !== 'undefined' ? (window.history.state as unknown) : null;
+    const st = (this.router.getCurrentNavigation()?.extras?.state ?? browserState) as any;
     const root = st?.prefillRoot as CauseNode | undefined;
     if (root && typeof root === 'object') {
       this.prefillRoot.set(root);

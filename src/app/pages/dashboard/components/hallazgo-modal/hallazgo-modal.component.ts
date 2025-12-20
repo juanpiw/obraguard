@@ -95,6 +95,19 @@ export class HallazgoModalComponent {
       const resp = await firstValueFrom(this.hallazgosService.analyzeEvidence(formData));
       console.log('[Hallazgos][IA] Respuesta', resp);
       this.form.get('riesgo')?.setValue(resp.riesgo);
+
+      // Auto completar título si el usuario aún no lo ingresó
+      const tituloCtrl = this.form.get('titulo');
+      const currentTitulo = String(tituloCtrl?.value || '').trim();
+      if (tituloCtrl && !currentTitulo) {
+        const suggested =
+          String((resp as any)?.titulo || '').trim() ||
+          this.buildTitleFromDescripcion(resp.descripcion);
+        if (suggested) {
+          tituloCtrl.setValue(suggested);
+        }
+      }
+
       this.aiMessage.set(resp.descripcion);
       this.aiDescripcion.set(resp.descripcion);
       this.aiRiesgo.set(resp.riesgo);
@@ -112,6 +125,11 @@ export class HallazgoModalComponent {
 
   protected toggleSubmitOptions(): void {
     console.log('[Hallazgos][UI] Toggle opciones de envío');
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      this.logInvalidForm('normal');
+      return;
+    }
     this.selectedSubmitOption.set('normal');
     this.showSubmitOptions.update((v) => !v);
   }
@@ -132,6 +150,7 @@ export class HallazgoModalComponent {
     console.log('[Hallazgos][UI] handleSubmit start', mode);
     if (this.form.invalid) {
       this.form.markAllAsTouched();
+      this.logInvalidForm(mode);
       return;
     }
 
@@ -163,19 +182,19 @@ export class HallazgoModalComponent {
         const causeTreeId = saved?.causeTreeId ?? null;
         if (!causeTreeId) {
           console.error('[Hallazgos][UI] No causeTreeId returned, navigating with prefill', { saved });
-          this.submitted.emit(
-            `Hallazgo "${payload.titulo}" creado, pero no se pudo guardar el árbol. Abriendo árbol con datos pre-cargados.`
-          );
           void this.router.navigate(['/app/arbol-causas'], {
             state: { prefillRoot: rootJson, prefillHallazgo: saved }
           });
+          this.submitted.emit(
+            `Hallazgo "${payload.titulo}" creado, pero no se pudo guardar el árbol. Abriendo árbol con datos pre-cargados.`
+          );
         } else {
-          this.submitted.emit(`Hallazgo "${payload.titulo}" enviado con árbol de causa.`);
           console.log('[Hallazgos][UI] navigate to arbol-causas', { causeTreeId });
           void this.router.navigate(['/app/arbol-causas'], {
             queryParams: { id: causeTreeId },
             state: { prefillRoot: rootJson, prefillHallazgo: saved }
           });
+          this.submitted.emit(`Hallazgo "${payload.titulo}" enviado con árbol de causa.`);
         }
       } else {
         this.submitted.emit(
@@ -262,6 +281,19 @@ export class HallazgoModalComponent {
     };
   }
 
+  private buildTitleFromDescripcion(descripcion: string | null | undefined): string {
+    const text = String(descripcion || '').replace(/\s+/g, ' ').trim();
+    if (!text) return '';
+
+    // Tomamos primeras palabras como título corto
+    const words = text.split(' ').slice(0, 10).join(' ').trim();
+    const compact = words.replace(/[.。]+$/g, '').trim();
+    if (compact.length >= 6) return compact;
+
+    // fallback simple
+    return text.slice(0, 60).trim();
+  }
+
   protected onMediaSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
@@ -302,6 +334,25 @@ export class HallazgoModalComponent {
     this.aiDescripcion.set(null);
     this.aiRiesgo.set(null);
     this.aiMessage.set(null);
+  }
+
+  private logInvalidForm(mode: 'normal' | 'telefono' | 'arbol'): void {
+    const controls = this.form.controls as Record<string, any>;
+    const invalid: Record<string, unknown> = {};
+    for (const key of Object.keys(controls)) {
+      const c = controls[key];
+      if (c?.invalid) {
+        invalid[key] = {
+          value: c?.value,
+          errors: c?.errors
+        };
+      }
+    }
+    console.warn('[Hallazgos][UI] form invalid - cannot submit', {
+      mode,
+      invalid,
+      rawValue: this.form.getRawValue()
+    });
   }
 }
 

@@ -20,6 +20,7 @@ export interface AnalyzeResponse {
   mediaUrl: string | null;
   mediaType: string | null;
   mediaId: number | null;
+  titulo?: string;
   causas?: string[];
   recomendaciones?: string[];
 }
