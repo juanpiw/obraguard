@@ -28,14 +28,38 @@ export interface AnalyzeResponse {
   titulo?: string;
   causas?: string[];
   recomendaciones?: string[];
+  analisis_hecho?: {
+    es_valido?: boolean;
+    correccion_sugerida?: string | null;
+    clasificacion_gema?: 'G' | 'E' | 'M' | 'A' | null;
+    codigo_miper?: string | null;
+    peligro?: string | null;
+    riesgo?: string | null;
+    danio?: string | null;
+    alerta_genero?: string | null;
+  };
+  riesgo_calculo?: {
+    prob?: number | null;
+    cons?: number | null;
+    vep?: number | null;
+    nivel?: string | null;
+  };
+  controles?: { tipo?: string; descripcion?: string }[];
+  causas_sugeridas?: { descripcion?: string; relacion_logica?: string; pregunta_validacion?: string }[];
   aiSuggestion?: {
     peligro: string | null;
     riesgo: string | null;
     danio: string | null;
     prob?: number | null;
     cons?: number | null;
+    vep?: number | null;
+    nivel?: string | null;
+    clasificacion_gema?: 'G' | 'E' | 'M' | 'A' | null;
+    codigo_miper?: string | null;
+    alerta_genero?: string | null;
     controles?: string[];
     medidaControl?: string | null;
+    causas_sugeridas?: { descripcion?: string; relacion_logica?: string; pregunta_validacion?: string }[];
   };
 }
 

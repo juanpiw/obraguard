@@ -164,6 +164,25 @@
                 @if (aiRiesgo()) {
                   <span class="ai-result__tag">Riesgo sugerido: {{ aiRiesgo() }}</span>
                 }
+                <div class="ai-result__meta">
+                  @if (aiProb() || aiCons()) {
+                    <span class="pill">P: {{ aiProb() || '—' }}</span>
+                    <span class="pill">C: {{ aiCons() || '—' }}</span>
+                    <span class="pill">VEP: {{ aiVep() || (aiProb() && aiCons() ? aiProb()! * aiCons()! : '—') }}</span>
+                  }
+                  @if (aiNivel()) {
+                    <span class="pill pill--blue">{{ aiNivel() }}</span>
+                  }
+                  @if (aiCodigoMiper()) {
+                    <span class="pill pill--purple">Código MIPER: {{ aiCodigoMiper() }}</span>
+                  }
+                  @if (aiGema()) {
+                    <span class="pill pill--gray">GEMA: {{ aiGema() }}</span>
+                  }
+                  @if (aiAlertaGenero()) {
+                    <span class="pill pill--alert">Género: {{ aiAlertaGenero() }}</span>
+                  }
+                </div>
               </div>
               <div class="ai-actions">
                 <button type="button" class="ai-secondary-button" (click)="proposeImprovements()" [disabled]="aiLoading()">

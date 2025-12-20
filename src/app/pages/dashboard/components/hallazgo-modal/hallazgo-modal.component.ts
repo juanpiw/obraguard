@@ -38,6 +38,13 @@ export class HallazgoModalComponent {
   protected readonly aiRiesgo = signal<HallazgoRiesgo | null>(null);
   protected readonly aiCausas = signal<string[]>([]);
   protected readonly aiRecomendaciones = signal<string[]>([]);
+  protected readonly aiProb = signal<number | null>(null);
+  protected readonly aiCons = signal<number | null>(null);
+  protected readonly aiVep = signal<number | null>(null);
+  protected readonly aiNivel = signal<string | null>(null);
+  protected readonly aiCodigoMiper = signal<string | null>(null);
+  protected readonly aiGema = signal<string | null>(null);
+  protected readonly aiAlertaGenero = signal<string | null>(null);
   protected readonly showImprovements = signal(false);
   protected readonly submitting = signal(false);
   protected readonly captureMode = signal<CaptureMode>('upload');
@@ -91,6 +98,13 @@ export class HallazgoModalComponent {
 
     this.aiLoading.set(true);
     this.aiMessage.set(null);
+    this.aiProb.set(null);
+    this.aiCons.set(null);
+    this.aiVep.set(null);
+    this.aiNivel.set(null);
+    this.aiCodigoMiper.set(null);
+    this.aiGema.set(null);
+    this.aiAlertaGenero.set(null);
     try {
       console.log('[Hallazgos][IA] Iniciando análisis de evidencia...');
       const formData = new FormData();
@@ -111,15 +125,24 @@ export class HallazgoModalComponent {
         }
       }
 
+      const aiSuggestion = (resp as any)?.aiSuggestion || {};
       this.aiMessage.set(resp.descripcion);
-      this.aiDescripcion.set(resp.descripcion);
-      this.aiRiesgo.set(resp.riesgo);
+      this.aiDescripcion.set(aiSuggestion.danio || resp.descripcion);
+      this.aiRiesgo.set((aiSuggestion.riesgo as HallazgoRiesgo) || resp.riesgo);
       this.aiCausas.set(resp.causas || []);
-      this.aiRecomendaciones.set(resp.recomendaciones || []);
+      const controles = (aiSuggestion.controles as string[]) || resp.recomendaciones || [];
+      this.aiRecomendaciones.set(controles);
+      this.aiProb.set(aiSuggestion.prob ?? (resp as any)?.riesgo_calculo?.prob ?? null);
+      this.aiCons.set(aiSuggestion.cons ?? (resp as any)?.riesgo_calculo?.cons ?? null);
+      this.aiVep.set(aiSuggestion.vep ?? (resp as any)?.riesgo_calculo?.vep ?? null);
+      this.aiNivel.set(aiSuggestion.nivel ?? (resp as any)?.riesgo_calculo?.nivel ?? null);
+      this.aiCodigoMiper.set(aiSuggestion.codigo_miper ?? (resp as any)?.analisis_hecho?.codigo_miper ?? null);
+      this.aiGema.set(aiSuggestion.clasificacion_gema ?? (resp as any)?.analisis_hecho?.clasificacion_gema ?? null);
+      this.aiAlertaGenero.set(aiSuggestion.alerta_genero ?? (resp as any)?.analisis_hecho?.alerta_genero ?? null);
       this.showImprovements.set(false);
       this.analyzedMediaId = resp.mediaId ?? null;
       this.analyzedMediaUrl = resp.mediaUrl ?? null;
-      this.analyzedDescripcion = resp.descripcion ?? null;
+      this.analyzedDescripcion = aiSuggestion.danio ?? resp.descripcion ?? null;
     } catch (err: any) {
       console.error('[Hallazgos][IA] Error', err);
       this.aiMessage.set(err?.message || 'No se pudo analizar la evidencia.');
