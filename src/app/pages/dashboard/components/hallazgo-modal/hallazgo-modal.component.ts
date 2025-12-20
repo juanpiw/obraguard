@@ -124,6 +124,7 @@ export class HallazgoModalComponent {
   }
 
   protected async handleSubmit(mode: 'normal' | 'telefono' | 'arbol' = 'normal'): Promise<void> {
+    console.log('[Hallazgos][UI] handleSubmit start', mode);
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
@@ -147,6 +148,7 @@ export class HallazgoModalComponent {
       };
 
       const saved = await firstValueFrom(this.hallazgosService.createHallazgo(payload));
+      console.log('[Hallazgos][UI] handleSubmit success', { mode, saved });
 
       this.submitted.emit(
         mode === 'telefono'
@@ -157,6 +159,7 @@ export class HallazgoModalComponent {
       );
       if (mode === 'arbol') {
         const treeId = saved?.id ?? '';
+        console.log('[Hallazgos][UI] navigate to arbol-causas', { treeId });
         void this.router.navigate(['/app/arbol-causas'], {
           queryParams: treeId ? { id: treeId } : {}
         });
@@ -171,6 +174,7 @@ export class HallazgoModalComponent {
       this.aiMessage.set(null);
       this.clearMedia();
     } catch (err: any) {
+      console.error('[Hallazgos][UI] handleSubmit error', err);
       this.aiMessage.set(err?.message || 'No se pudo enviar el hallazgo.');
     } finally {
       this.submitting.set(false);
