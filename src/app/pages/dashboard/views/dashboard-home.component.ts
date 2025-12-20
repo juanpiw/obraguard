@@ -127,7 +127,6 @@ export class DashboardHomeComponent {
         next: (resp) => {
           const url = resp.iperUrl || (resp.iperFile ? `${location.origin}/exports/${resp.iperFile}` : null);
           console.log('[Dashboard][UI] exportIper ok', { obraId, iperFile: resp.iperFile, iperUrl: url });
-          this.iperLink.set(url);
           this.iperMessage.set('Matriz generada.');
           this.showBanner();
         },
