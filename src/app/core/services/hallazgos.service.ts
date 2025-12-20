@@ -9,7 +9,6 @@ import { Observable, catchError, map, of, tap } from 'rxjs';
 import { CauseNode } from '../models/cause-tree.model';
 
 const API_BASE =
-  'https://www.api.thefutureagencyai.com' ||
   (globalThis as { AF_API_URL?: string }).AF_API_URL ||
   (import.meta as { env?: Record<string, string> }).env?.['NG_APP_API_URL'] ||
   (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:4000');
@@ -29,6 +28,7 @@ export interface CreateHallazgoPayload {
   riesgo: HallazgoRiesgo;
   sector?: string;
   descripcion_ai?: string;
+  causas?: string[];
   reportero?: string;
   anonimo?: boolean;
   mediaId?: number | null;

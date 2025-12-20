@@ -132,6 +132,11 @@
                   }
                 </button>
               </div>
+              @if (aiLoading()) {
+                <div class="ai-progress">
+                  <div class="ai-progress__bar"></div>
+                </div>
+              }
               <div class="ai-result">
                 <p class="ai-result__label">Descripción IA</p>
                 <textarea

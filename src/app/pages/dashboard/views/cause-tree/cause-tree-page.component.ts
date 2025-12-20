@@ -95,6 +95,7 @@ export class CauseTreePageComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly selectedTreeId = signal<string | null>(this.route.snapshot.queryParamMap.get('id'));
 
   protected readonly loading = signal(true);
   protected readonly saving = signal(false);
@@ -105,7 +106,7 @@ export class CauseTreePageComponent {
 
   protected readonly modalOpen = signal(false);
 
-  protected readonly causeTreeId = computed(() => this.route.snapshot.queryParamMap.get('id'));
+  protected readonly causeTreeId = computed(() => this.selectedTreeId());
 
   protected readonly aiTitle = computed(() =>
     this.aiStatus() === 'working' ? 'Generando árbol con IA...' : 'Procesando con IA...'
@@ -113,10 +114,14 @@ export class CauseTreePageComponent {
 
   constructor() {
     this.loadHistory();
-    this.loadTree();
+    this.loadTree(this.causeTreeId());
     this.route.queryParamMap
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(() => this.loadTree());
+      .subscribe((params) => {
+        const id = params.get('id');
+        this.selectedTreeId.set(id);
+        this.loadTree(id);
+      });
   }
 
   protected loadHistory(): void {
@@ -147,10 +152,10 @@ export class CauseTreePageComponent {
       });
   }
 
-  protected loadTree(): void {
+  protected loadTree(idParam?: string | null): void {
     this.loading.set(true);
     this.error.set(null);
-    const id = this.causeTreeId();
+    const id = idParam ?? this.causeTreeId();
     if (!id) {
       this.error.set('Selecciona o pasa un id de árbol (?id=). Mostrando demo.');
       this.tree.set(DEMO_TREE);

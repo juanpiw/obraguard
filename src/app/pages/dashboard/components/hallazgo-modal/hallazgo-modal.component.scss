@@ -351,6 +351,23 @@
   font-size: 0.9rem;
 }
 
+.ai-progress {
+  width: 100%;
+  height: 6px;
+  border-radius: 999px;
+  background: #e2e8f0;
+  overflow: hidden;
+  margin: 0.25rem 0 0.5rem;
+}
+
+.ai-progress__bar {
+  width: 40%;
+  height: 100%;
+  background: linear-gradient(90deg, #4f46e5, #6366f1);
+  border-radius: inherit;
+  animation: ai-indeterminate 1s linear infinite;
+}
+
 .ai-result textarea {
   width: 100%;
   min-height: 120px;
@@ -372,6 +389,18 @@
   background: #fff7ed;
   border-color: #fed7aa;
   color: #9a3412;
+}
+
+@keyframes ai-indeterminate {
+  0% {
+    transform: translateX(-50%);
+  }
+  50% {
+    transform: translateX(50%);
+  }
+  100% {
+    transform: translateX(150%);
+  }
 }
 
 .ai-panel {

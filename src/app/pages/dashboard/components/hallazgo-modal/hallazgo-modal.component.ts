@@ -147,6 +147,7 @@ export class HallazgoModalComponent {
         reportero: reporter,
         anonimo: this.anonimo,
         descripcion_ai: this.analyzedDescripcion ?? undefined,
+        causas: this.aiCausas() ?? [],
         mediaId: this.analyzedMediaId ?? undefined,
         meta: mode,
         root_json: mode === 'arbol' ? rootJson : undefined
@@ -163,11 +164,15 @@ export class HallazgoModalComponent {
             : `Hallazgo "${payload.titulo}" reportado con éxito.`
       );
       if (mode === 'arbol') {
-        const treeId = saved?.id ?? '';
-        console.log('[Hallazgos][UI] navigate to arbol-causas', { treeId });
-        const finalTreeId = saved?.causeTreeId || treeId;
+        const causeTreeId = saved?.causeTreeId ?? null;
+        if (!causeTreeId) {
+          console.error('[Hallazgos][UI] No causeTreeId returned, staying in modal');
+          this.aiMessage.set('No se pudo crear el árbol de causas. Intenta nuevamente.');
+          return;
+        }
+        console.log('[Hallazgos][UI] navigate to arbol-causas', { causeTreeId });
         void this.router.navigate(['/app/arbol-causas'], {
-          queryParams: finalTreeId ? { id: finalTreeId } : {}
+          queryParams: { id: causeTreeId }
         });
       }
       this.form.reset({
@@ -220,14 +225,25 @@ export class HallazgoModalComponent {
     const titulo = this.form.get('titulo')?.value || 'Hallazgo';
     const riesgo = (this.form.get('riesgo')?.value ?? 'Medio') as HallazgoRiesgo;
     const descripcion = this.aiDescripcion() || this.form.get('titulo')?.value || '';
+    const sector = this.form.get('sector')?.value || '';
     const causes = this.aiCausas();
 
-    const children: CauseNode[] = (causes || []).map((c, idx) => ({
-      id: `c${idx + 1}`,
-      text: c,
-      type: 'Hecho',
-      children: []
-    }));
+    const children: CauseNode[] =
+      (causes || []).length > 0
+        ? (causes || []).map((c, idx) => ({
+            id: `c${idx + 1}`,
+            text: c,
+            type: 'Hecho',
+            children: []
+          }))
+        : [
+            {
+              id: 'c1',
+              text: sector ? `Visto en ${sector}` : 'Causa pendiente de análisis',
+              type: 'Hecho',
+              children: []
+            }
+          ];
 
     return {
       id: 'root',
