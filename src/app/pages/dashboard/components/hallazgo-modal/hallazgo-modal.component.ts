@@ -5,6 +5,7 @@ import {
   ReactiveFormsModule,
   Validators
 } from '@angular/forms';
+import { Router } from '@angular/router';
 import { HallazgosService } from '../../../../core/services/hallazgos.service';
 import { HallazgoRiesgo } from '../../../../core/models/hallazgo.model';
 import { firstValueFrom } from 'rxjs';
@@ -28,6 +29,7 @@ export class HallazgoModalComponent {
 
   private readonly fb = inject(FormBuilder);
   private readonly hallazgosService = inject(HallazgosService);
+  private readonly router = inject(Router);
 
   protected readonly aiLoading = signal(false);
   protected readonly aiMessage = signal<string | null>(null);
@@ -139,7 +141,7 @@ export class HallazgoModalComponent {
         meta: mode
       };
 
-      await firstValueFrom(this.hallazgosService.createHallazgo(payload));
+      const saved = await firstValueFrom(this.hallazgosService.createHallazgo(payload));
 
       this.submitted.emit(
         mode === 'telefono'
@@ -148,6 +150,9 @@ export class HallazgoModalComponent {
             ? `Hallazgo "${payload.titulo}" enviado con árbol de causa.`
             : `Hallazgo "${payload.titulo}" reportado con éxito.`
       );
+      if (mode === 'arbol' && saved?.id) {
+        void this.router.navigate(['/arbol-causa', saved.id]);
+      }
       this.form.reset({
         titulo: '',
         riesgo: 'Medio',
