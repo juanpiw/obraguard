@@ -1,9 +1,9 @@
 <section class="facts-card">
   <header class="facts-card__header">
     <div>
-      <h3>Lista de Hechos (editable)</h3>
+      <h3>Bolsa de Hechos (Etapa 3)</h3>
       <p class="muted">
-        Escribe hechos cortos y observables. Puedes marcarlos como “Pendiente” si requieren más investigación.
+        Escribe hechos cortos y observables. Esta lista no es cronológica: aquí solo reunimos hechos. La vinculación (Etapa 4) se define con “Padre” y AND/OR.
       </p>
     </div>
 
@@ -45,6 +45,13 @@
 
           <div class="fact-row__meta">
             <label>
+              <span>Padre (Etapa 4)</span>
+              <select [(ngModel)]="item.parent" (ngModelChange)="markDirty()">
+                <option *ngFor="let p of uniqueParents()" [value]="p.id">{{ p.label }}</option>
+              </select>
+            </label>
+
+            <label>
               <span>Tipo</span>
               <select [(ngModel)]="item.type" (ngModelChange)="markDirty()">
                 <option value="Hecho">Hecho</option>
@@ -75,6 +82,33 @@
           <button type="button" class="mini" (click)="moveUp(i)" [disabled]="disabled || i === 0">↑</button>
           <button type="button" class="mini" (click)="moveDown(i)" [disabled]="disabled || i === items.length - 1">↓</button>
           <button type="button" class="mini danger" (click)="removeFact(item.id)" [disabled]="disabled">✕</button>
+        </div>
+      </div>
+
+      <div class="logic-row" *ngIf="items.length">
+        <div class="logic-card">
+          <h4>Vinculación lógica (AND/OR) por padre</h4>
+          <div class="logic-grid">
+            <label>
+              <span>Accidente (raíz)</span>
+              <select [(ngModel)]="parentLogic['root']" (ngModelChange)="markDirty()">
+                <option value="AND">AND (se requieren varias)</option>
+                <option value="OR">OR (alternativas)</option>
+              </select>
+            </label>
+            <label *ngFor="let p of uniqueParents()">
+              <ng-container *ngIf="p.id !== 'root'">
+                <span>{{ p.label }}</span>
+                <select [(ngModel)]="parentLogic[p.id]" (ngModelChange)="markDirty()">
+                  <option value="AND">AND</option>
+                  <option value="OR">OR</option>
+                </select>
+              </ng-container>
+            </label>
+          </div>
+          <p class="hint">
+            AND/OR se aplica a los hijos del padre. Si un padre tiene un solo hijo, la cadena queda natural.
+          </p>
         </div>
       </div>
 

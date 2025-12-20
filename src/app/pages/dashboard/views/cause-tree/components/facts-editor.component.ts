@@ -11,6 +11,7 @@ export interface FactItem {
   type: CauseNodeType;
   status: FactStatus;
   notes?: string;
+  parent?: string; // 'root' o id de otro hecho (ej: f3)
 }
 
 @Component({
@@ -29,6 +30,7 @@ export class FactsEditorComponent implements OnChanges {
   protected accidentText = '';
   protected items: FactItem[] = [];
   protected dirty = false;
+  protected parentLogic: Record<string, CauseChildrenLogic> = {};
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['tree'] && !this.dirty) {
@@ -44,7 +46,8 @@ export class FactsEditorComponent implements OnChanges {
       text: '',
       type: 'Hecho',
       status: 'Confirmado',
-      notes: ''
+      notes: '',
+      parent: 'root'
     });
   }
 
@@ -81,30 +84,85 @@ export class FactsEditorComponent implements OnChanges {
   protected handleGenerate(): void {
     if (this.disabled) return;
     const rootText = String(this.accidentText || '').trim() || (this.tree?.text || 'Accidente');
-    const children = (this.items || [])
-      .map((it, idx) => ({
-        id: `f${idx + 1}`,
-        text: String(it.text || '').trim(),
-        type: it.type,
-        children: [] as CauseNode[],
-        childrenLogic: 'AND' as CauseChildrenLogic,
-        notes: it.status === 'Pendiente' ? (String(it.notes || '').trim() || 'Pendiente de investigación') : (String(it.notes || '').trim() || null),
-        meta: { status: it.status, source: 'facts_editor' }
-      }))
-      .filter((n) => !!n.text);
 
+    // Construimos nodos y relaciones (Etapa 4): el usuario define padre por hecho
+    const nodesById = new Map<string, CauseNode>();
+    const ordered = (this.items || []).map((it) => ({
+      ...it,
+      factId: `f${it.id}`
+    }));
+
+    for (const it of ordered) {
+      const txt = String(it.text || '').trim();
+      if (!txt) continue;
+      const notes =
+        it.status === 'Pendiente'
+          ? String(it.notes || '').trim() || 'Pendiente de investigación'
+          : String(it.notes || '').trim() || null;
+      nodesById.set(it.factId, {
+        id: it.factId,
+        text: txt,
+        type: it.type,
+        children: [],
+        childrenLogic: 'AND',
+        notes,
+        meta: {
+          source: 'facts_editor',
+          status: it.status,
+          factNumber: it.id
+        }
+      });
+    }
+
+    // root
     const root: CauseNode = {
       id: 'root',
       text: rootText,
       type: 'Accidente',
-      children,
-      childrenLogic: (children.length > 1 ? 'AND' : 'OR') as CauseChildrenLogic,
+      children: [],
+      childrenLogic: 'AND',
       notes: null,
-      meta: { source: 'facts_editor' }
+      meta: { source: 'facts_editor', factNumber: 0 }
     };
+
+    // armar aristas padre->hijo
+    for (const it of ordered) {
+      const child = nodesById.get(it.factId);
+      if (!child) continue;
+      const parentId = String(it.parent || 'root');
+      if (parentId === 'root') {
+        root.children.push(child);
+      } else {
+        const parent = nodesById.get(parentId);
+        // evitar ciclos obvios (si el parent no existe, cae al root)
+        if (!parent || parent.id === child.id) {
+          root.children.push(child);
+        } else {
+          parent.children.push(child);
+        }
+      }
+    }
+
+    // aplicar lógica AND/OR por cada padre (incluyendo root)
+    root.childrenLogic = (this.parentLogic['root'] || (root.children.length > 1 ? 'AND' : 'OR')) as CauseChildrenLogic;
+    for (const [id, node] of nodesById.entries()) {
+      const logic = this.parentLogic[id];
+      node.childrenLogic = (logic || (node.children.length > 1 ? 'AND' : 'OR')) as CauseChildrenLogic;
+    }
 
     this.generate.emit({ root, meta: { source: 'facts_editor', action: 'generate_from_facts' } });
     this.dirty = false;
+  }
+
+  protected uniqueParents(): { id: string; label: string }[] {
+    const parents = new Map<string, string>();
+    parents.set('root', 'Accidente (raíz)');
+    for (const it of this.items) {
+      const fid = `f${it.id}`;
+      const label = `${it.id}. ${String(it.text || '').slice(0, 40) || '(sin texto)'}`;
+      parents.set(fid, label);
+    }
+    return Array.from(parents.entries()).map(([id, label]) => ({ id, label }));
   }
 
   private loadFromTree(tree: CauseNode | null): void {
@@ -112,17 +170,39 @@ export class FactsEditorComponent implements OnChanges {
     if (!t) {
       this.accidentText = '';
       this.items = [];
+      this.parentLogic = {};
       return;
     }
     this.accidentText = String(t.text || '').trim();
-    const children = Array.isArray(t.children) ? t.children : [];
-    this.items = children.map((c, idx) => ({
-      id: idx + 1,
-      text: String(c.text || '').trim(),
-      type: (c.type || 'Hecho') as CauseNodeType,
-      status: ((c?.meta as any)?.['status'] === 'Pendiente' ? 'Pendiente' : 'Confirmado') as FactStatus,
-      notes: String(c.notes || '').trim()
-    }));
+
+    // Aplanamos el árbol (excepto root) para editar (Etapa 3)
+    const out: FactItem[] = [];
+    const parentLogic: Record<string, CauseChildrenLogic> = {};
+    parentLogic['root'] = (t.childrenLogic || (t.children?.length > 1 ? 'AND' : 'OR')) as CauseChildrenLogic;
+
+    let nextN = 1;
+    const walk = (node: CauseNode, parentId: string) => {
+      const n = (node?.meta as any)?.['factNumber'];
+      const idNum = typeof n === 'number' && Number.isFinite(n) ? n : nextN++;
+      const status = ((node?.meta as any)?.['status'] === 'Pendiente' ? 'Pendiente' : 'Confirmado') as FactStatus;
+      out.push({
+        id: idNum,
+        text: String(node.text || '').trim(),
+        type: (node.type || 'Hecho') as CauseNodeType,
+        status,
+        notes: String(node.notes || '').trim(),
+        parent: parentId
+      });
+      if (node.children && node.children.length) {
+        parentLogic[String(node.id)] = (node.childrenLogic || (node.children.length > 1 ? 'AND' : 'OR')) as CauseChildrenLogic;
+      }
+      for (const c of node.children || []) walk(c, String(node.id));
+    };
+    for (const c of t.children || []) walk(c, 'root');
+    // ordenar por id numérico
+    out.sort((a, b) => a.id - b.id);
+    this.items = out;
+    this.parentLogic = parentLogic;
   }
 }
 

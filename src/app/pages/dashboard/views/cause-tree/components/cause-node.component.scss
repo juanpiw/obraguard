@@ -67,6 +67,10 @@
   height: 74px;
 }
 
+.node-circle.circle-condicion {
+  border-radius: 0.9rem; /* “hecho permanente” se dibuja distinto */
+}
+
 .circle-num {
   font-weight: 1000;
   font-size: 1.4rem;
