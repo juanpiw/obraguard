@@ -1,0 +1,272 @@
+<div class="pts-art-page">
+  <!-- Mobile Header -->
+  <header class="mobile-header">
+    <div class="mobile-brand">
+      <span class="icon-hardhat"></span>
+      <span>Prevención Chile</span>
+    </div>
+    <button type="button" class="icon-button" (click)="toggleMobileMenu()">
+      <span class="icon-menu"></span>
+    </button>
+  </header>
+
+  <div class="layout">
+    <!-- Sidebar -->
+    <aside class="sidebar" [class.sidebar--open]="mobileMenuOpen()">
+      <div class="sidebar__brand">
+        <div class="sidebar__title">
+          <span class="icon-shield"></span>
+          <div>
+            <h1>Gestión Riesgo</h1>
+            <p>Arquitectura Operacional Chile</p>
+          </div>
+        </div>
+      </div>
+      <nav class="sidebar__nav">
+        @for (link of navLinks; track link.id) {
+          <a href="#{{ link.id }}" (click)="closeMobileMenu()">
+            <span class="icon-bullet"></span>
+            {{ link.label }}
+          </a>
+        }
+      </nav>
+      <div class="sidebar__footer">© 2024 Seguridad Industrial CL</div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="content">
+      <!-- Hero -->
+      <section id="intro" class="hero">
+        <div class="hero__badge">Informe Técnico</div>
+        <h1>Arquitectura de la Gestión del Riesgo Operacional en Chile</h1>
+        <p class="hero__lead">
+          Un examen exhaustivo de los dos pilares de la seguridad en terreno: El
+          <strong>Procedimiento de Trabajo Seguro (PTS)</strong> y el
+          <strong>Análisis de Riesgo del Trabajo (ART)</strong>.
+        </p>
+        <div class="hero__cards">
+          <div class="hero-card hero-card--pts">
+            <h3><span class="icon-clock"></span>PTS (Planificación)</h3>
+            <p>El "Deber Ser". Estática, ingeniería, idealizada. Cumplimiento de la Obligación de Informar.</p>
+          </div>
+          <div class="hero-card hero-card--art">
+            <h3><span class="icon-alert"></span>ART (Gestión Dinámica)</h3>
+            <p>El "Es Ahora". Dinámica, realidad del momento, variables ambientales y psicofisiológicas.</p>
+          </div>
+        </div>
+      </section>
+
+      <div class="sections">
+        <!-- PTS -->
+        <section id="pts" class="section">
+          <div class="section__header">
+            <div class="badge badge--pts"><span class="icon-file"></span></div>
+            <div>
+              <h2>2. El Procedimiento de Trabajo Seguro (PTS)</h2>
+              <p>Estandarización y el "Derecho a Saber"</p>
+            </div>
+          </div>
+
+          <p class="section__text">
+            Documento técnico-administrativo que sistematiza la secuencia lógica para ejecutar una tarea crítica.
+            No busca enseñar el oficio, sino estandarizar medidas de seguridad para lograr <strong>"cero desviaciones"</strong>.
+          </p>
+
+          <div class="info-box info-box--pts">
+            <h4>⚖️ El Mandato Legal: Decreto Supremo 40, Art. 21</h4>
+            <p class="info-box__quote">
+              "Los empleadores tienen la obligación de informar oportuna y convenientemente a todos sus trabajadores acerca
+              de los riesgos... de las medidas preventivas y de los métodos de trabajo correctos."
+            </p>
+            <p class="muted">
+              La DT y SEREMIs interpretan que el "método correcto" es el PTS escrito. Su ausencia deja a la empresa en indefensión jurídica.
+            </p>
+          </div>
+
+          <h3 class="section__subtitle">¿Cuándo es Exigible? (Criterios de Criticidad)</h3>
+          <div class="card-grid">
+            <div class="card card--simple">
+              <h5 class="text-red">Alto Potencial de Daño</h5>
+              <p>Izaje crítico, altura >1.8m, espacios confinados.</p>
+            </div>
+            <div class="card card--simple">
+              <h5 class="text-orange">Baja Frecuencia</h5>
+              <p>Tareas no rutinarias sin "memoria muscular" (Ej: Paradas de planta).</p>
+            </div>
+            <div class="card card--simple">
+              <h5 class="text-blue">Complejidad Operacional</h5>
+              <p>Interacción de disciplinas, bloqueo de energías complejas.</p>
+            </div>
+            <div class="card card--simple">
+              <h5 class="text-purple">Mandato Normativo</h5>
+              <p>Sustancias peligrosas (DS 43), Calderas (DS 10).</p>
+            </div>
+          </div>
+
+          <h3 class="section__subtitle">Anatomía de un PTS Robusto</h3>
+          <ul class="checklist">
+            <li><span class="icon-check"></span><strong>Identificación y Firmas:</strong> Autoría, revisión y aprobación. Sin firmas no hay validez legal.</li>
+            <li><span class="icon-check"></span><strong>Objetivo y Alcance:</strong> Define límites para evitar "zonas grises".</li>
+            <li><span class="icon-check"></span><strong>Responsabilidades:</strong> Asignadas al cargo (Admin, Supervisor, Trabajador).</li>
+            <li><span class="icon-check"></span><strong>Desarrollo (Paso a Paso):</strong> Redacción en imperativo.</li>
+            <li><span class="icon-check"></span><strong>Matriz de Riesgos Integrada:</strong> Paso -> Riesgo -> Control.</li>
+          </ul>
+        </section>
+
+        <hr class="divider" />
+
+        <!-- ART -->
+        <section id="art" class="section">
+          <div class="section__header">
+            <div class="badge badge--art"><span class="icon-bolt"></span></div>
+            <div>
+              <h2>3. El Análisis de Riesgo del Trabajo (ART / AST)</h2>
+              <p>La Última Barrera Defensiva (Gestión en Tiempo Real)</p>
+            </div>
+          </div>
+
+          <div class="card card--muted">
+            <h4>¿Por qué hacer un ART si ya existe un PTS?</h4>
+            <p>
+              El PTS asume condiciones estándar. El ART enfrenta la realidad del <strong>"aquí y ahora"</strong> y la variabilidad del entorno:
+            </p>
+            <div class="tags">
+              <span>Clima repentino</span>
+              <span>Interferencias operacionales</span>
+              <span>Fatiga del trabajador</span>
+              <span>Condiciones del terreno</span>
+            </div>
+          </div>
+
+          <h3 class="section__subtitle">Metodología de Ejecución (Paso a Paso)</h3>
+          <div class="timeline">
+            <div class="timeline__item">
+              <span class="timeline__dot"></span>
+              <h5>1. Desglose de la Tarea del Día</h5>
+              <p>Solo subtareas específicas de la jornada, no copiar el PTS completo.</p>
+            </div>
+            <div class="timeline__item">
+              <span class="timeline__dot"></span>
+              <h5>2. Identificación de Peligros 360°</h5>
+              <p>Escanear el entorno en busca de energías presentes.</p>
+            </div>
+            <div class="timeline__item">
+              <span class="timeline__dot"></span>
+              <h5>3. Evaluación y Controles In Situ</h5>
+              <p>Matriz de campo (Bajo/Medio/Alto). Definir controles inmediatos.</p>
+            </div>
+            <div class="timeline__item">
+              <span class="timeline__dot"></span>
+              <h5>4. Firma y Liderazgo</h5>
+              <p>Compromiso legal. El supervisor debe validar la calidad del análisis.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Legal -->
+        <section id="legal" class="section legal">
+          <h2>4. Marco Legal Específico</h2>
+          <div class="legal__grid">
+            <div class="legal__card">
+              <div class="legal__title legal__title--yellow">DS 132 (Minería)</div>
+              <p>Estándar más riguroso. Art 26 exige procedimientos. Art 38 exige al supervisor facilitar medios y control.</p>
+            </div>
+            <div class="legal__card">
+              <div class="legal__title">DS 594 (General)</div>
+              <p>Condiciones sanitarias y ambientales. Implica revisión constante del entorno (función del ART).</p>
+            </div>
+            <div class="legal__card legal__card--green">
+              <div class="legal__title legal__title--green">DS 44 (Nuevo 2025)</div>
+              <p>Gestión para PYMES. Exige simplificación pero mantiene MIPER y Programa de Trabajo. Enfoque ágil.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Comparativa -->
+        <section id="comparativa" class="section">
+          <h2>5. Sinergia Operativa: Tabla Comparativa</h2>
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Dimensión</th>
+                  <th class="bg-pts">PTS (Procedimiento)</th>
+                  <th class="bg-art">ART (Análisis)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="bold">Temporalidad</td>
+                  <td><span class="pill pill--blue">Previo / Planificado</span></td>
+                  <td><span class="pill pill--orange">Inmediato / Situacional</span></td>
+                </tr>
+                <tr>
+                  <td class="bold">Foco</td>
+                  <td>Tarea y Proceso (Secuencia)</td>
+                  <td>Entorno y Personas (Condiciones)</td>
+                </tr>
+                <tr>
+                  <td class="bold">Vigencia</td>
+                  <td>Indefinida</td>
+                  <td>Transitoria (Un turno)</td>
+                </tr>
+                <tr>
+                  <td class="bold">Elaborador</td>
+                  <td>Equipo multidisciplinario</td>
+                  <td>Cuadrilla operativa</td>
+                </tr>
+                <tr>
+                  <td class="bold">Objetivo</td>
+                  <td>Estandarizar y reducir variabilidad</td>
+                  <td>Verificar condiciones (Go/No Go)</td>
+                </tr>
+                <tr>
+                  <td class="bold">Base Legal</td>
+                  <td>DS 40 Art. 21</td>
+                  <td>DS 132 / ISO 45001</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Digital -->
+        <section id="digital" class="section digital">
+          <div class="digital__inner">
+            <div>
+              <h2>6. Desafíos y Digitalización</h2>
+              <div class="grid">
+                <div class="card">
+                  <h4 class="text-red">La Trampa de la "Seguridad de Papel"</h4>
+                  <p>El llenado rutinario o post-accidente ("copiar-pegar") anula la prevención. El trabajador lo ve como burocracia.</p>
+                  <p class="bold">Solución: "Pausas de Seguridad" para llenado conversado.</p>
+                </div>
+                <div class="card">
+                  <h4 class="text-blue">La Revolución Digital</h4>
+                  <ul class="list">
+                    <li><span class="icon-pin"></span><strong>Georreferenciación:</strong> Asegura firma en el punto de trabajo.</li>
+                    <li><span class="icon-hourglass"></span><strong>Bloqueo por Tiempo:</strong> Obliga a un tiempo mínimo de análisis.</li>
+                    <li><span class="icon-chart"></span><strong>Data Analytics:</strong> Predice zonas de riesgo basándose en reportes masivos.</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Conclusion -->
+        <section id="conclusion" class="section">
+          <h2>7. Conclusión: Cultura de Prevención Consciente</h2>
+          <p>
+            El PTS y el ART no son burocracia; son la metodología técnica para proteger la vida. El PTS aporta la
+            <strong>ciencia y estandarización</strong> (DS 40), mientras que el ART aporta la <strong>consciencia situacional y flexibilidad</strong> (DS 132).
+          </p>
+          <div class="quote">
+            "La excelencia en prevención no se mide por la cantidad de papel archivado, sino por la calidad de la discusión
+            que estos documentos provocan en el frente de trabajo."
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+</div>

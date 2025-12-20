@@ -34,6 +34,7 @@ export class DashboardComponent implements OnDestroy {
     { label: 'Incidentes', route: '/app/incidentes', icon: 'incidentes' },
     { label: 'Hallazgos', route: '/app/hallazgos', icon: 'hallazgos' },
     { label: 'Documentos', route: '/app/documentos', icon: 'documentos' },
+    { label: 'PTS & ART', route: '/app/pts-art', icon: 'documentos' },
     { label: 'Equipo', route: '/app/equipo', icon: 'equipo' }
   ];
 

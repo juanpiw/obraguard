@@ -107,6 +107,18 @@
     cursor: not-allowed;
   }
 
+  .btn-ghost {
+    background: #eef2ff;
+    color: #1d4ed8;
+    border: 1px solid #cbd5f5;
+  }
+
+  .btn-ghost:hover {
+    background: #e0e7ff;
+    border-color: #a5b4fc;
+    color: #1e3a8a;
+  }
+
   .btn-link {
     color: #2563eb;
     font-weight: 600;
@@ -121,6 +133,84 @@
 .iper-card {
   position: relative;
   overflow: hidden;
+}
+
+.iper-list-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.iper-list__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  p {
+    margin: 0;
+    font-weight: 700;
+    color: #0f172a;
+  }
+
+  small {
+    color: #6b7280;
+  }
+}
+
+.iper-count {
+  background: #2563eb;
+  color: #fff;
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.iper-list {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.iper-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+  text-decoration: none;
+  background: #f8fafc;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+
+  &:hover {
+    border-color: #cbd5f5;
+    box-shadow: 0 10px 20px rgba(37, 99, 235, 0.12);
+    transform: translateY(-1px);
+  }
+
+  p {
+    margin: 0;
+    font-weight: 700;
+    color: #0f172a;
+  }
+
+  small {
+    color: #6b7280;
+  }
+}
+
+.iper-item__badge {
+  background: #e0f2fe;
+  color: #0369a1;
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.iper-list__empty {
+  margin: 0;
+  color: #6b7280;
 }
 
 .iper-card--highlight {

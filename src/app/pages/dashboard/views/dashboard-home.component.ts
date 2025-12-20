@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { finalize } from 'rxjs';
 import { HallazgosService } from '../../../core/services/hallazgos.service';
 import { KpiCardComponent } from '../components/kpi-card/kpi-card.component';
@@ -38,6 +38,7 @@ export class DashboardHomeComponent {
 
   protected readonly hallazgos = this.hallazgosService.hallazgos;
   protected readonly stats = this.hallazgosService.stats;
+  protected readonly iperFiles = computed(() => this.hallazgos().filter((h) => !!h.iper_url));
   protected readonly iperLink = computed(() => {
     const first = this.hallazgos().find((h) => !!h.iper_url);
     return first?.iper_url ?? null;
@@ -46,6 +47,7 @@ export class DashboardHomeComponent {
   protected readonly iperMessage = signal<string | null>(null);
   protected readonly iperBannerVisible = signal(false);
   private bannerTimer: number | null = null;
+  private lastIperLink: string | null = null;
 
   protected readonly kpiCards = computed<DashboardKpi[]>(() => {
     const st = this.stats();
@@ -110,6 +112,14 @@ export class DashboardHomeComponent {
     // cargar valores reales desde backend
     this.hallazgosService.loadHallazgos().subscribe();
     this.hallazgosService.loadStats().subscribe();
+
+    effect(() => {
+      const url = this.iperLink();
+      if (url && url !== this.lastIperLink) {
+        this.lastIperLink = url;
+        this.showBanner();
+      }
+    });
   }
 
   protected exportIper(): void {

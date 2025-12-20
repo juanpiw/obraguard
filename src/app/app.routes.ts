@@ -108,6 +108,14 @@ export const routes: Routes = [
             (m) => m.EquipoPageComponent
           ),
         data: { title: 'Equipo' }
+      },
+      {
+        path: 'pts-art',
+        loadComponent: () =>
+          import('./pages/dashboard/views/pts-art-page.component').then(
+            (m) => m.PtsArtPageComponent
+          ),
+        data: { title: 'PTS y ART' }
       }
     ]
   },
