@@ -19,7 +19,10 @@
         <span *ngIf="aiStatus() !== 'working'">Resolver con IA</span>
         <span *ngIf="aiStatus() === 'working'">Trabajando...</span>
       </button>
-      <button class="primary" type="button">Generar PDF</button>
+      <button class="primary" type="button" (click)="exportPdf()" [disabled]="pdfWorking() || loading()">
+        <span *ngIf="!pdfWorking()">Generar PDF</span>
+        <span *ngIf="pdfWorking()">Generando...</span>
+      </button>
     </div>
   </header>
 

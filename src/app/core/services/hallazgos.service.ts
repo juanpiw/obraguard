@@ -25,6 +25,20 @@ export interface AnalyzeResponse {
   recomendaciones?: string[];
 }
 
+export interface HallazgoGetResponse {
+  id: number | string;
+  estado?: HallazgoEstado | string;
+  riesgo: HallazgoRiesgo;
+  titulo: string;
+  reporter?: string | null;
+  fecha?: string;
+  sector?: string | null;
+  descripcion_ai?: string | null;
+  media_url?: string | null;
+  media_type?: string | null;
+  cause_tree_id?: number | string | null;
+}
+
 export interface CreateHallazgoPayload {
   titulo: string;
   riesgo: HallazgoRiesgo;
@@ -132,6 +146,12 @@ export class HallazgosService {
         return of(null);
       })
     );
+  }
+
+  getHallazgoById(id: number | string): Observable<HallazgoGetResponse> {
+    return this.http
+      .get<{ data: HallazgoGetResponse }>(`${API_BASE}/api/hallazgos/${id}`)
+      .pipe(map((resp) => resp.data));
   }
 
   createHallazgo(payload: CreateHallazgoPayload): Observable<Hallazgo> {

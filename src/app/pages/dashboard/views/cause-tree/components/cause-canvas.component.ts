@@ -199,6 +199,20 @@ export class CauseCanvasComponent implements AfterViewInit, OnChanges {
     this.zoomValue = Math.round(clamped * 100) / 100;
   }
 
+  public getZoom(): number {
+    return this.zoomValue;
+  }
+
+  public setZoomPublic(value: number): void {
+    this.setZoom(value);
+  }
+
+  public getExportElement(): HTMLElement | null {
+    const canvas = this.canvasRef?.nativeElement;
+    if (!canvas) return null;
+    return canvas.querySelector('.tree-content') as HTMLElement | null;
+  }
+
   private centerRoot(): void {
     const canvas = this.canvasRef?.nativeElement;
     if (!canvas) return;

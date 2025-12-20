@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import {
   Component,
   DestroyRef,
+  ViewChild,
   computed,
   inject,
   signal
@@ -11,6 +12,7 @@ import { finalize, tap } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CauseChildrenLogic, CauseNode, CauseNodeType } from '../../../../core/models/cause-tree.model';
 import { CauseTreeService } from '../../../../core/services/cause-tree.service';
+import { HallazgosService, HallazgoGetResponse } from '../../../../core/services/hallazgos.service';
 import { CauseCanvasComponent } from './components/cause-canvas.component';
 import { NodeModalComponent } from './components/node-modal.component';
 import { AiToastComponent } from './components/ai-toast.component';
@@ -93,6 +95,7 @@ const DEMO_TREE: CauseNode = {
 })
 export class CauseTreePageComponent {
   private readonly service = inject(CauseTreeService);
+  private readonly hallazgos = inject(HallazgosService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
@@ -103,8 +106,13 @@ export class CauseTreePageComponent {
   protected readonly saving = signal(false);
   protected readonly error = signal<string | null>(null);
   protected readonly tree = signal<CauseNode | null>(null);
+  protected readonly activeHallazgoId = signal<number | string | null>(null);
+  protected readonly activeHallazgo = signal<HallazgoGetResponse | null>(null);
   protected readonly aiStatus = signal<'idle' | 'working' | 'done'>('idle');
   protected readonly history = signal<{ id: number | string; hallazgoId?: number | string | null; updatedAt?: string }[]>([]);
+  protected readonly pdfWorking = signal(false);
+
+  @ViewChild(CauseCanvasComponent) private canvasCmp?: CauseCanvasComponent;
 
   protected readonly modalOpen = signal(false);
   protected readonly modalMode = signal<NodeModalMode>('add');
@@ -148,6 +156,7 @@ export class CauseTreePageComponent {
       typeof window !== 'undefined' ? (window.history.state as unknown) : null;
     const st = (this.router.getCurrentNavigation()?.extras?.state ?? browserState) as any;
     const root = st?.prefillRoot as CauseNode | undefined;
+    const hallazgo = st?.prefillHallazgo as HallazgoGetResponse | undefined;
     if (root && typeof root === 'object') {
       this.prefillRoot.set(root);
       // Si no viene id, mostramos inmediatamente el árbol pre-cargado
@@ -156,6 +165,10 @@ export class CauseTreePageComponent {
         this.loading.set(false);
         this.error.set(null);
       }
+    }
+    if (hallazgo && typeof hallazgo === 'object') {
+      this.activeHallazgo.set(hallazgo);
+      this.activeHallazgoId.set((hallazgo as any)?.id ?? null);
     }
   }
 
@@ -208,7 +221,23 @@ export class CauseTreePageComponent {
     this.service
       .getTree(id)
       .pipe(
-        tap((resp) => this.tree.set(resp.root)),
+        tap((resp) => {
+          this.tree.set(resp.root);
+          this.activeHallazgoId.set((resp as any)?.hallazgoId ?? null);
+          // Si no tenemos hallazgo precargado, intentamos cargarlo para el PDF.
+          const hid = (resp as any)?.hallazgoId ?? null;
+          if (hid && !this.activeHallazgo()) {
+            this.hallazgos
+              .getHallazgoById(hid)
+              .pipe(takeUntilDestroyed(this.destroyRef))
+              .subscribe({
+                next: (h) => this.activeHallazgo.set(h),
+                error: () => {
+                  // silencioso: PDF puede salir igual sin datos del hallazgo
+                }
+              });
+          }
+        }),
         finalize(() => this.loading.set(false)),
         takeUntilDestroyed(this.destroyRef)
       )
@@ -475,6 +504,120 @@ export class CauseTreePageComponent {
           this.error.set('No se pudo eliminar el árbol. Revisa conexión o vuelve a intentar.');
         }
       });
+  }
+
+  protected async exportPdf(): Promise<void> {
+    const root = this.tree();
+    if (!root) {
+      this.error.set('No hay árbol para exportar.');
+      return;
+    }
+    this.error.set(null);
+    this.pdfWorking.set(true);
+
+    try {
+      const { jsPDF } = await import('jspdf');
+      const html2canvas = (await import('html2canvas')).default;
+
+      // Captura árbol
+      const exportEl = this.canvasCmp?.getExportElement();
+      if (!exportEl) {
+        throw new Error('No se pudo acceder al canvas para exportar.');
+      }
+
+      const prevZoom = this.canvasCmp?.getZoom?.() ?? 1;
+      this.canvasCmp?.setZoomPublic?.(1);
+
+      // Clon para exportar sin afectar UI
+      const wrapper = document.createElement('div');
+      wrapper.className = 'pdf-export';
+      wrapper.style.position = 'fixed';
+      wrapper.style.left = '-100000px';
+      wrapper.style.top = '0';
+      wrapper.style.background = '#ffffff';
+      wrapper.style.padding = '24px';
+
+      const clone = exportEl.cloneNode(true) as HTMLElement;
+      clone.style.zoom = '1';
+      wrapper.appendChild(clone);
+      document.body.appendChild(wrapper);
+
+      const canvas = await html2canvas(wrapper, {
+        backgroundColor: '#ffffff',
+        scale: 2,
+        useCORS: true
+      });
+
+      document.body.removeChild(wrapper);
+      this.canvasCmp?.setZoomPublic?.(prevZoom);
+
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' });
+
+      // Portada
+      const pageW = pdf.internal.pageSize.getWidth();
+      const pageH = pdf.internal.pageSize.getHeight();
+      const margin = 36;
+      const h = this.activeHallazgo();
+      pdf.setFont('helvetica', 'bold');
+      pdf.setFontSize(18);
+      pdf.text('Investigación de Accidentes - Árbol de Causas', margin, margin + 10);
+
+      pdf.setFont('helvetica', 'normal');
+      pdf.setFontSize(11);
+      const metaLines: string[] = [
+        `Árbol ID: ${this.causeTreeId() || 'demo'}`,
+        h?.id ? `Hallazgo ID: ${h.id}` : (this.activeHallazgoId() ? `Hallazgo ID: ${this.activeHallazgoId()}` : ''),
+        h?.riesgo ? `Riesgo: ${h.riesgo}` : '',
+        h?.sector ? `Sector: ${h.sector}` : '',
+        h?.fecha ? `Fecha: ${h.fecha}` : '',
+        h?.reporter ? `Reportado por: ${h.reporter}` : ''
+      ].filter(Boolean);
+
+      let y = margin + 40;
+      for (const line of metaLines) {
+        pdf.text(line, margin, y);
+        y += 16;
+      }
+
+      const desc = (h?.descripcion_ai || h?.titulo || root.text || '').trim();
+      if (desc) {
+        y += 8;
+        pdf.setFont('helvetica', 'bold');
+        pdf.text('Descripción base:', margin, y);
+        y += 16;
+        pdf.setFont('helvetica', 'normal');
+        const wrapped = pdf.splitTextToSize(desc, pageW - margin * 2);
+        pdf.text(wrapped, margin, y);
+      }
+
+      // Página(s) con el árbol
+      pdf.addPage();
+      const imgProps = (pdf as any).getImageProperties(imgData);
+      const pdfWidth = pageW - margin * 2;
+      const pdfHeight = pageH - margin * 2;
+      const imgHeight = (imgProps.height * pdfWidth) / imgProps.width;
+      let heightLeft = imgHeight;
+      let position = margin;
+
+      pdf.addImage(imgData, 'PNG', margin, position, pdfWidth, imgHeight);
+      heightLeft -= pdfHeight;
+
+      while (heightLeft > 0) {
+        pdf.addPage();
+        position = margin - (imgHeight - heightLeft);
+        pdf.addImage(imgData, 'PNG', margin, position, pdfWidth, imgHeight);
+        heightLeft -= pdfHeight;
+      }
+
+      const filename = `arbol-causas_${h?.id ? `hallazgo-${h.id}_` : ''}${this.causeTreeId() || 'demo'}.pdf`;
+      pdf.save(filename);
+    } catch (err: any) {
+      console.error('[CauseTree][UI] exportPdf error', err);
+      this.error.set(err?.message || 'No se pudo generar el PDF.');
+    } finally {
+      this.pdfWorking.set(false);
+    }
   }
 
   private persistTree(root: CauseNode, meta: Record<string, any> = { source: 'ui_edit' }): void {
