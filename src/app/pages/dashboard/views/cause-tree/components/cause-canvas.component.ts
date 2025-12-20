@@ -33,6 +33,9 @@ export class CauseCanvasComponent implements AfterViewInit, OnChanges {
   private startY = 0;
   private scrollLeft = 0;
   private scrollTop = 0;
+  private draggingPointerType: 'mouse' | 'touch' | null = null;
+  private readonly onWindowMouseMove = (e: MouseEvent) => this.onDrag(e);
+  private readonly onWindowMouseUp = (_e: MouseEvent) => this.endDrag();
 
   protected zoom = () => this.zoomValue;
   private zoomValue = 1;
@@ -43,10 +46,11 @@ export class CauseCanvasComponent implements AfterViewInit, OnChanges {
   private lastTapAt = 0;
   private pinchStartDistance: number | null = null;
   private pinchStartZoom: number | null = null;
-  private longPressTimer: number | null = null;
-  private touchZoomMode = false;
-  private touchZoomStartY = 0;
-  private touchZoomStartZoom = 1;
+  private touchDragging = false;
+  private touchStartX = 0;
+  private touchStartY = 0;
+  private touchScrollLeft = 0;
+  private touchScrollTop = 0;
 
   ngAfterViewInit(): void {
     this.centerRoot();
@@ -65,15 +69,20 @@ export class CauseCanvasComponent implements AfterViewInit, OnChanges {
       return;
     }
     this.isDragging = true;
+    this.draggingPointerType = 'mouse';
     this.startX = event.pageX - this.canvasRef.nativeElement.offsetLeft;
     this.startY = event.pageY - this.canvasRef.nativeElement.offsetTop;
     this.scrollLeft = this.canvasRef.nativeElement.scrollLeft;
     this.scrollTop = this.canvasRef.nativeElement.scrollTop;
     this.canvasRef.nativeElement.classList.add('dragging');
+
+    // Mantener el arrastre aunque el mouse salga del contenedor.
+    window.addEventListener('mousemove', this.onWindowMouseMove);
+    window.addEventListener('mouseup', this.onWindowMouseUp);
   }
 
   protected onDrag(event: MouseEvent): void {
-    if (!this.isDragging) return;
+    if (!this.isDragging || this.draggingPointerType !== 'mouse') return;
     event.preventDefault();
     const x = event.pageX - this.canvasRef.nativeElement.offsetLeft;
     const y = event.pageY - this.canvasRef.nativeElement.offsetTop;
@@ -85,7 +94,10 @@ export class CauseCanvasComponent implements AfterViewInit, OnChanges {
 
   protected endDrag(): void {
     this.isDragging = false;
+    this.draggingPointerType = null;
     this.canvasRef.nativeElement.classList.remove('dragging');
+    window.removeEventListener('mousemove', this.onWindowMouseMove);
+    window.removeEventListener('mouseup', this.onWindowMouseUp);
   }
 
   protected onWheel(event: WheelEvent): void {
@@ -128,23 +140,27 @@ export class CauseCanvasComponent implements AfterViewInit, OnChanges {
         this.setZoom(this.zoomValue < 1.2 ? 1.6 : 1);
       }
 
-      // Long press para “modo zoom” (mantener presionado + arrastrar arriba/abajo)
       const target = event.target as HTMLElement | null;
       if (target?.closest('.node-card') || target?.closest('button')) {
         return;
       }
-      this.longPressTimer = window.setTimeout(() => {
-        this.touchZoomMode = true;
-        this.touchZoomStartY = event.touches[0]?.clientY ?? 0;
-        this.touchZoomStartZoom = this.zoomValue;
-      }, 450);
+
+      // Pan con 1 dedo: mantener presionado y arrastrar (lienzo infinito).
+      this.touchDragging = true;
+      this.draggingPointerType = 'touch';
+      this.touchStartX = event.touches[0]?.clientX ?? 0;
+      this.touchStartY = event.touches[0]?.clientY ?? 0;
+      this.touchScrollLeft = this.canvasRef.nativeElement.scrollLeft;
+      this.touchScrollTop = this.canvasRef.nativeElement.scrollTop;
+      this.canvasRef.nativeElement.classList.add('dragging');
       return;
     }
 
     // Pinch: 2 dedos
     if (event.touches.length === 2) {
-      this.clearLongPress();
-      this.touchZoomMode = false;
+      this.touchDragging = false;
+      this.draggingPointerType = null;
+      this.canvasRef.nativeElement.classList.remove('dragging');
       this.pinchStartDistance = this.touchDistance(event.touches[0], event.touches[1]);
       this.pinchStartZoom = this.zoomValue;
     }
@@ -160,32 +176,25 @@ export class CauseCanvasComponent implements AfterViewInit, OnChanges {
       return;
     }
 
-    // Long-press zoom mode
-    if (event.touches.length === 1 && this.touchZoomMode) {
+    // Pan con 1 dedo
+    if (event.touches.length === 1 && this.touchDragging && this.draggingPointerType === 'touch') {
       event.preventDefault();
+      const x = event.touches[0]?.clientX ?? 0;
       const y = event.touches[0]?.clientY ?? 0;
-      const dy = this.touchZoomStartY - y;
-      const zoomDelta = dy / 250; // sensibilidad
-      this.setZoom(this.touchZoomStartZoom + zoomDelta);
+      const dx = x - this.touchStartX;
+      const dy = y - this.touchStartY;
+      this.canvasRef.nativeElement.scrollLeft = this.touchScrollLeft - dx;
+      this.canvasRef.nativeElement.scrollTop = this.touchScrollTop - dy;
       return;
     }
-
-    // Si el usuario mueve el dedo, cancelamos long-press (para no activar accidentalmente)
-    this.clearLongPress();
   }
 
   protected onTouchEnd(_event: TouchEvent): void {
-    this.clearLongPress();
-    this.touchZoomMode = false;
+    this.touchDragging = false;
+    this.draggingPointerType = null;
+    this.canvasRef.nativeElement.classList.remove('dragging');
     this.pinchStartDistance = null;
     this.pinchStartZoom = null;
-  }
-
-  private clearLongPress(): void {
-    if (this.longPressTimer) {
-      window.clearTimeout(this.longPressTimer);
-      this.longPressTimer = null;
-    }
   }
 
   private touchDistance(a: Touch, b: Touch): number {

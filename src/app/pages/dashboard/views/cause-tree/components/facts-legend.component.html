@@ -1,0 +1,22 @@
+<section class="legend-card" *ngIf="items.length">
+  <header class="legend-card__header">
+    <h4>Leyenda / Lista de referencias</h4>
+    <p>Los números del diagrama corresponden a estos hechos.</p>
+  </header>
+
+  <div class="legend-table">
+    <div class="legend-row legend-row--head">
+      <span>#</span>
+      <span>Hecho</span>
+      <span>Tipo</span>
+      <span>Estado</span>
+    </div>
+    <div class="legend-row" *ngFor="let it of items">
+      <span class="n">{{ it.n }}</span>
+      <span class="txt">{{ it.text }}</span>
+      <span class="type">{{ it.type }}</span>
+      <span class="status" [class.status--pending]="it.status === 'Pendiente'">{{ it.status }}</span>
+    </div>
+  </div>
+</section>
+

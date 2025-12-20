@@ -110,6 +110,19 @@
             }
           </div>
 
+          @if (isActiveTab('manual')) {
+            <div class="form-field">
+              <label>Descripción detallada (opcional)</label>
+              <textarea
+                rows="4"
+                [value]="aiDescripcion() || ''"
+                (input)="onDescripcionChange($event)"
+                placeholder="Ej: La estructura del andamio se encuentra apoyada sobre tablones... (hechos observables, sin juicios)."
+              ></textarea>
+              <small class="field-hint">Esta descripción se usará como base para generar el árbol de causas.</small>
+            </div>
+          }
+
           @if (isActiveTab('auto')) {
             <div class="ai-panel">
               <div class="ai-panel__header">

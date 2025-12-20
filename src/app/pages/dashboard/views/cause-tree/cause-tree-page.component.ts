@@ -11,13 +11,17 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { finalize, tap } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CauseChildrenLogic, CauseNode, CauseNodeType } from '../../../../core/models/cause-tree.model';
-import { CauseTreeService } from '../../../../core/services/cause-tree.service';
+import { CauseTreeReportResponse, CauseTreeService, MeasureItem } from '../../../../core/services/cause-tree.service';
 import { HallazgosService, HallazgoGetResponse } from '../../../../core/services/hallazgos.service';
 import { CauseCanvasComponent } from './components/cause-canvas.component';
 import { NodeModalComponent } from './components/node-modal.component';
 import { AiToastComponent } from './components/ai-toast.component';
 import { NodeModalMode } from './components/node-modal.component';
 import { FactsEditorComponent } from './components/facts-editor.component';
+import { FactsLegendComponent } from './components/facts-legend.component';
+import { ReportFicha, ReportFichaComponent } from './components/report-ficha.component';
+import { ReportRelatoComponent } from './components/report-relato.component';
+import { ReportMeasuresComponent } from './components/report-measures.component';
 
 const DEMO_TREE: CauseNode = {
   id: 1,
@@ -90,7 +94,17 @@ const DEMO_TREE: CauseNode = {
 @Component({
   selector: 'app-cause-tree-page',
   standalone: true,
-  imports: [CommonModule, FactsEditorComponent, CauseCanvasComponent, NodeModalComponent, AiToastComponent],
+  imports: [
+    CommonModule,
+    FactsEditorComponent,
+    FactsLegendComponent,
+    ReportFichaComponent,
+    ReportRelatoComponent,
+    ReportMeasuresComponent,
+    CauseCanvasComponent,
+    NodeModalComponent,
+    AiToastComponent
+  ],
   templateUrl: './cause-tree-page.component.html',
   styleUrl: './cause-tree-page.component.scss'
 })
@@ -107,6 +121,8 @@ export class CauseTreePageComponent {
   protected readonly saving = signal(false);
   protected readonly error = signal<string | null>(null);
   protected readonly tree = signal<CauseNode | null>(null);
+  // Árbol solo para render (numeración + metadatos de UI)
+  protected readonly displayTree = computed(() => this.withFactNumbers(this.tree()));
   protected readonly activeHallazgoId = signal<number | string | null>(null);
   protected readonly activeHallazgo = signal<HallazgoGetResponse | null>(null);
   protected readonly aiStatus = signal<'idle' | 'working' | 'done'>('idle');
@@ -114,6 +130,15 @@ export class CauseTreePageComponent {
   protected readonly pdfWorking = signal(false);
 
   @ViewChild(CauseCanvasComponent) private canvasCmp?: CauseCanvasComponent;
+
+  // Informe (Ficha/Relato/Medidas) - persistido en DB cuando existe ?id=
+  protected readonly reportLoading = signal(false);
+  protected readonly reportSaving = signal(false);
+  protected readonly report = signal<CauseTreeReportResponse | null>(null);
+  protected readonly ficha = signal<ReportFicha>({});
+  protected readonly relato = signal<string>('');
+  protected readonly measuresLoading = signal(false);
+  protected readonly measures = signal<MeasureItem[]>([]);
 
   protected readonly modalOpen = signal(false);
   protected readonly modalMode = signal<NodeModalMode>('add');
@@ -239,6 +264,9 @@ export class CauseTreePageComponent {
                 }
               });
           }
+
+          // Cargar informe/medidas para este árbol
+          this.loadReportAndMeasures(id);
         }),
         finalize(() => this.loading.set(false)),
         takeUntilDestroyed(this.destroyRef)
@@ -253,6 +281,150 @@ export class CauseTreePageComponent {
           }
           this.error.set('No se pudo cargar el árbol. Mostrando datos de ejemplo.');
           this.tree.set(DEMO_TREE);
+        }
+      });
+  }
+
+  private loadReportAndMeasures(id: number | string): void {
+    if (!id) return;
+    this.reportLoading.set(true);
+    this.service
+      .getReport(id)
+      .pipe(finalize(() => this.reportLoading.set(false)), takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (r) => {
+          this.report.set(r);
+          this.ficha.set((r?.ficha || {}) as ReportFicha);
+          this.relato.set(r?.relato || '');
+        },
+        error: (err) => {
+          console.error('[CauseTree][UI] report load error', err);
+          // No bloquea el árbol. Se puede continuar y el PDF saldrá sin ficha/relato.
+        }
+      });
+
+    this.measuresLoading.set(true);
+    this.service
+      .listMeasures(id)
+      .pipe(finalize(() => this.measuresLoading.set(false)), takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (rows) => this.measures.set(rows || []),
+        error: (err) => {
+          console.error('[CauseTree][UI] measures load error', err);
+        }
+      });
+  }
+
+  protected saveFicha(ficha: ReportFicha): void {
+    const id = this.causeTreeId();
+    if (!id) {
+      this.ficha.set({ ...(ficha || {}) });
+      return;
+    }
+    this.reportSaving.set(true);
+    this.service
+      .upsertReport(id, {
+        hallazgoId: this.activeHallazgoId() || undefined,
+        ficha: ficha || {},
+        relato: this.relato() || null
+      })
+      .pipe(finalize(() => this.reportSaving.set(false)), takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (r) => {
+          this.report.set(r);
+          this.ficha.set((r?.ficha || {}) as ReportFicha);
+          this.relato.set(r?.relato || '');
+        },
+        error: (err) => {
+          console.error('[CauseTree][UI] saveFicha error', err);
+          this.error.set(err?.error?.error || err?.message || 'No se pudo guardar la ficha.');
+        }
+      });
+  }
+
+  protected saveRelato(relato: string): void {
+    const id = this.causeTreeId();
+    this.relato.set(relato || '');
+    if (!id) return;
+    this.reportSaving.set(true);
+    this.service
+      .upsertReport(id, {
+        hallazgoId: this.activeHallazgoId() || undefined,
+        ficha: (this.ficha() || {}) as any,
+        relato: relato || null
+      })
+      .pipe(finalize(() => this.reportSaving.set(false)), takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (r) => {
+          this.report.set(r);
+          this.ficha.set((r?.ficha || {}) as ReportFicha);
+          this.relato.set(r?.relato || '');
+        },
+        error: (err) => {
+          console.error('[CauseTree][UI] saveRelato error', err);
+          this.error.set(err?.error?.error || err?.message || 'No se pudo guardar el relato.');
+        }
+      });
+  }
+
+  protected createMeasure(payload: Partial<MeasureItem>): void {
+    const id = this.causeTreeId();
+    if (!id) return;
+    this.measuresLoading.set(true);
+    this.service
+      .createMeasure(id, {
+        causaRaiz: (payload as any)?.causaRaiz || null,
+        medidaCorrectiva: String((payload as any)?.medidaCorrectiva || ''),
+        responsable: (payload as any)?.responsable || null,
+        fechaCompromiso: (payload as any)?.fechaCompromiso || null,
+        estado: (payload as any)?.estado || null,
+        causeNodeId: (payload as any)?.causeNodeId || null
+      })
+      .pipe(finalize(() => this.measuresLoading.set(false)), takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => this.loadReportAndMeasures(id),
+        error: (err) => {
+          console.error('[CauseTree][UI] createMeasure error', err);
+          this.error.set(err?.error?.error || err?.message || 'No se pudo crear la medida.');
+        }
+      });
+  }
+
+  protected updateMeasure(evt: { id: number | string; patch: Partial<MeasureItem> }): void {
+    const id = this.causeTreeId();
+    if (!id) return;
+    this.measuresLoading.set(true);
+    this.service
+      .updateMeasure(id, evt.id, {
+        causaRaiz: (evt.patch as any)?.causaRaiz || null,
+        medidaCorrectiva: (evt.patch as any)?.medidaCorrectiva,
+        responsable: (evt.patch as any)?.responsable || null,
+        fechaCompromiso: (evt.patch as any)?.fechaCompromiso || null,
+        estado: (evt.patch as any)?.estado || null,
+        causeNodeId: (evt.patch as any)?.causeNodeId || null
+      })
+      .pipe(finalize(() => this.measuresLoading.set(false)), takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => this.loadReportAndMeasures(id),
+        error: (err) => {
+          console.error('[CauseTree][UI] updateMeasure error', err);
+          this.error.set(err?.error?.error || err?.message || 'No se pudo actualizar la medida.');
+        }
+      });
+  }
+
+  protected deleteMeasure(measureId: number | string): void {
+    const id = this.causeTreeId();
+    if (!id) return;
+    this.measuresLoading.set(true);
+    this.service
+      .deleteMeasure(id, measureId)
+      .pipe(finalize(() => this.measuresLoading.set(false)), takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => this.loadReportAndMeasures(id),
+        error: (err) => {
+          console.error('[CauseTree][UI] deleteMeasure error', err);
+          this.error.set(err?.error?.error || err?.message || 'No se pudo eliminar la medida.');
         }
       });
   }
@@ -527,7 +699,7 @@ export class CauseTreePageComponent {
   }
 
   protected async exportPdf(): Promise<void> {
-    const root = this.tree();
+    const root = this.displayTree();
     if (!root) {
       this.error.set('No hay árbol para exportar.');
       return;
@@ -539,98 +711,185 @@ export class CauseTreePageComponent {
       const { jsPDF } = await import('jspdf');
       const html2canvas = (await import('html2canvas')).default;
 
-      // Captura árbol
-      const exportEl = this.canvasCmp?.getExportElement();
-      if (!exportEl) {
-        throw new Error('No se pudo acceder al canvas para exportar.');
-      }
-
-      const prevZoom = this.canvasCmp?.getZoom?.() ?? 1;
-      this.canvasCmp?.setZoomPublic?.(1);
-
-      // Clon para exportar sin afectar UI
-      const wrapper = document.createElement('div');
-      wrapper.className = 'pdf-export';
-      wrapper.style.position = 'fixed';
-      wrapper.style.left = '-100000px';
-      wrapper.style.top = '0';
-      wrapper.style.background = '#ffffff';
-      wrapper.style.padding = '24px';
-
-      const clone = exportEl.cloneNode(true) as HTMLElement;
-      clone.style.zoom = '1';
-      wrapper.appendChild(clone);
-      document.body.appendChild(wrapper);
-
-      const canvas = await html2canvas(wrapper, {
-        backgroundColor: '#ffffff',
-        scale: 2,
-        useCORS: true
-      });
-
-      document.body.removeChild(wrapper);
-      this.canvasCmp?.setZoomPublic?.(prevZoom);
-
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' });
-
-      // Portada
-      const pageW = pdf.internal.pageSize.getWidth();
-      const pageH = pdf.internal.pageSize.getHeight();
-      const margin = 36;
       const h = this.activeHallazgo();
-      pdf.setFont('helvetica', 'bold');
-      pdf.setFontSize(18);
-      pdf.text('Investigación de Accidentes - Árbol de Causas', margin, margin + 10);
+      const ficha = this.ficha();
+      const relato = this.relato();
+      const measures = this.measures();
 
-      pdf.setFont('helvetica', 'normal');
-      pdf.setFontSize(11);
-      const metaLines: string[] = [
-        `Árbol ID: ${this.causeTreeId() || 'demo'}`,
-        h?.id ? `Hallazgo ID: ${h.id}` : (this.activeHallazgoId() ? `Hallazgo ID: ${this.activeHallazgoId()}` : ''),
-        h?.riesgo ? `Riesgo: ${h.riesgo}` : '',
-        h?.sector ? `Sector: ${h.sector}` : '',
-        h?.fecha ? `Fecha: ${h.fecha}` : '',
-        h?.reporter ? `Reportado por: ${h.reporter}` : ''
-      ].filter(Boolean);
+      const exportEl = this.canvasCmp?.getExportElement();
+      if (!exportEl) throw new Error('No se pudo acceder al canvas para exportar.');
 
-      let y = margin + 40;
-      for (const line of metaLines) {
-        pdf.text(line, margin, y);
-        y += 16;
-      }
+      const makeOffscreen = (html: string) => {
+        const wrapper = document.createElement('div');
+        wrapper.style.position = 'fixed';
+        wrapper.style.left = '-100000px';
+        wrapper.style.top = '0';
+        wrapper.style.background = '#ffffff';
+        wrapper.style.padding = '24px';
+        wrapper.innerHTML = html;
+        document.body.appendChild(wrapper);
+        return wrapper;
+      };
 
-      const desc = (h?.descripcion_ai || h?.titulo || root.text || '').trim();
-      if (desc) {
-        y += 8;
-        pdf.setFont('helvetica', 'bold');
-        pdf.text('Descripción base:', margin, y);
-        y += 16;
-        pdf.setFont('helvetica', 'normal');
-        const wrapped = pdf.splitTextToSize(desc, pageW - margin * 2);
-        pdf.text(wrapped, margin, y);
-      }
+      const capture = async (el: HTMLElement, backgroundColor: string, scale = 2) => {
+        const canvas = await html2canvas(el, { backgroundColor, scale, useCORS: true });
+        return canvas.toDataURL('image/png');
+      };
 
-      // Página(s) con el árbol
-      pdf.addPage();
-      const imgProps = (pdf as any).getImageProperties(imgData);
-      const pdfWidth = pageW - margin * 2;
-      const pdfHeight = pageH - margin * 2;
-      const imgHeight = (imgProps.height * pdfWidth) / imgProps.width;
-      let heightLeft = imgHeight;
-      let position = margin;
+      const addImagePaginated = (pdf: any, imgData: string, orientation: 'portrait' | 'landscape') => {
+        const margin = 36;
+        const pageW = pdf.internal.pageSize.getWidth();
+        const pageH = pdf.internal.pageSize.getHeight();
+        const imgProps = (pdf as any).getImageProperties(imgData);
+        const pdfWidth = pageW - margin * 2;
+        const pdfHeight = pageH - margin * 2;
+        const imgHeight = (imgProps.height * pdfWidth) / imgProps.width;
+        let heightLeft = imgHeight;
+        let position = margin;
 
-      pdf.addImage(imgData, 'PNG', margin, position, pdfWidth, imgHeight);
-      heightLeft -= pdfHeight;
-
-      while (heightLeft > 0) {
-        pdf.addPage();
-        position = margin - (imgHeight - heightLeft);
         pdf.addImage(imgData, 'PNG', margin, position, pdfWidth, imgHeight);
         heightLeft -= pdfHeight;
-      }
+        while (heightLeft > 0) {
+          pdf.addPage('a4', orientation);
+          position = margin - (imgHeight - heightLeft);
+          pdf.addImage(imgData, 'PNG', margin, position, pdfWidth, imgHeight);
+          heightLeft -= pdfHeight;
+        }
+      };
 
-      const filename = `arbol-causas_${h?.id ? `hallazgo-${h.id}_` : ''}${this.causeTreeId() || 'demo'}.pdf`;
+      // 1) Portada + Ficha + Relato + Lista de hechos (portrait)
+      const legendItems = (() => {
+        const out: { n: any; text: string; type: string; status: string }[] = [];
+        const walk = (node: CauseNode) => {
+          const n = (node?.meta as any)?.['factNumber'];
+          const status = ((node?.meta as any)?.['status'] === 'Pendiente' ? 'Pendiente' : 'Confirmado') as string;
+          out.push({ n, text: node.text, type: node.type, status });
+          for (const c of node.children || []) walk(c);
+        };
+        for (const c of root.children || []) walk(c);
+        return out;
+      })();
+
+      const coverHtml = `
+        <style>
+          *{box-sizing:border-box;font-family:Arial,Helvetica,sans-serif}
+          h1{margin:0 0 6px 0;font-size:22px}
+          h2{margin:18px 0 8px 0;font-size:16px}
+          .muted{color:#475569;font-size:12px}
+          .row{display:flex;gap:12px;flex-wrap:wrap}
+          .card{border:1px solid #e2e8f0;border-radius:12px;padding:12px}
+          .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+          .kv{font-size:12px}
+          .kv b{display:block;color:#0f172a}
+          .kv span{color:#334155}
+          table{width:100%;border-collapse:collapse;font-size:12px}
+          th,td{border:1px solid #e2e8f0;padding:6px;vertical-align:top}
+          th{background:#f8fafc;text-align:left}
+        </style>
+        <div class="row" style="align-items:center;justify-content:space-between">
+          <div>
+            <h1>Informe Investigación Accidente - Árbol de Causas</h1>
+            <div class="muted">Árbol ID: ${this.causeTreeId() || 'demo'} ${h?.id ? `| Hallazgo ID: ${h.id}` : ''}</div>
+          </div>
+          <div class="muted" style="font-weight:700">LOGO</div>
+        </div>
+
+        <h2>Ficha</h2>
+        <div class="card">
+          <div class="grid">
+            <div class="kv"><b>Empresa</b><span>${ficha?.empresa || ''}</span></div>
+            <div class="kv"><b>Nombre</b><span>${ficha?.nombre || ''}</span></div>
+            <div class="kv"><b>RUT</b><span>${ficha?.rut || ''}</span></div>
+            <div class="kv"><b>Cargo</b><span>${ficha?.cargo || ''}</span></div>
+            <div class="kv"><b>Fecha</b><span>${ficha?.fecha || h?.fecha || ''}</span></div>
+            <div class="kv"><b>Hora</b><span>${ficha?.hora || ''}</span></div>
+            <div class="kv" style="grid-column:1/-1"><b>Lugar</b><span>${ficha?.lugar || h?.sector || ''}</span></div>
+            <div class="kv"><b>Riesgo</b><span>${h?.riesgo || ''}</span></div>
+            <div class="kv"><b>Reportado por</b><span>${h?.reporter || ''}</span></div>
+          </div>
+        </div>
+
+        <h2>Relato</h2>
+        <div class="card"><div style="white-space:pre-wrap;font-size:12px;color:#0f172a">${(relato || '').replace(/</g,'&lt;')}</div></div>
+
+        <h2>Lista de Hechos</h2>
+        <table>
+          <thead><tr><th style="width:60px">#</th><th>Hecho</th><th style="width:110px">Tipo</th><th style="width:110px">Estado</th></tr></thead>
+          <tbody>
+            ${legendItems.map(it => `<tr><td>${it.n ?? ''}</td><td>${String(it.text||'').replace(/</g,'&lt;')}</td><td>${it.type}</td><td>${it.status}</td></tr>`).join('')}
+          </tbody>
+        </table>
+      `;
+
+      const coverWrap = makeOffscreen(coverHtml);
+      const coverImg = await capture(coverWrap, '#ffffff', 2);
+      document.body.removeChild(coverWrap);
+
+      const pdf = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
+      addImagePaginated(pdf, coverImg, 'portrait');
+
+      // 2) Diagrama (landscape)
+      const prevZoom = this.canvasCmp?.getZoom?.() ?? 1;
+      this.canvasCmp?.setZoomPublic?.(1);
+      const diagramWrap = document.createElement('div');
+      diagramWrap.style.position = 'fixed';
+      diagramWrap.style.left = '-100000px';
+      diagramWrap.style.top = '0';
+      diagramWrap.style.background = '#ffffff';
+      diagramWrap.style.padding = '24px';
+      diagramWrap.innerHTML = `
+        <style>
+          .tree-content{zoom:1}
+          .connector-h{background:#111827!important}
+        </style>
+      `;
+      const clone = exportEl.cloneNode(true) as HTMLElement;
+      clone.style.zoom = '1';
+      diagramWrap.appendChild(clone);
+      document.body.appendChild(diagramWrap);
+      const diagramImg = await capture(diagramWrap, '#ffffff', 2);
+      document.body.removeChild(diagramWrap);
+      this.canvasCmp?.setZoomPublic?.(prevZoom);
+
+      pdf.addPage('a4', 'landscape');
+      addImagePaginated(pdf, diagramImg, 'landscape');
+
+      // 3) Medidas (portrait)
+      const measuresHtml = `
+        <style>
+          *{box-sizing:border-box;font-family:Arial,Helvetica,sans-serif}
+          h2{margin:0 0 10px 0;font-size:16px}
+          table{width:100%;border-collapse:collapse;font-size:12px}
+          th,td{border:1px solid #e2e8f0;padding:6px;vertical-align:top}
+          th{background:#f8fafc;text-align:left}
+        </style>
+        <h2>Medidas de Control</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Causa Raíz</th>
+              <th>Medida Correctiva</th>
+              <th style="width:160px">Responsable</th>
+              <th style="width:110px">Fecha</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${(measures || []).map(m => `<tr>
+              <td>${String(m.causaRaiz || '').replace(/</g,'&lt;')}</td>
+              <td>${String(m.medidaCorrectiva || '').replace(/</g,'&lt;')}</td>
+              <td>${String(m.responsable || '')}</td>
+              <td>${String(m.fechaCompromiso || '')}</td>
+            </tr>`).join('')}
+          </tbody>
+        </table>
+      `;
+      const measWrap = makeOffscreen(measuresHtml);
+      const measImg = await capture(measWrap, '#ffffff', 2);
+      document.body.removeChild(measWrap);
+      pdf.addPage('a4', 'portrait');
+      addImagePaginated(pdf, measImg, 'portrait');
+
+      const filename = `informe_arbol-causas_${h?.id ? `hallazgo-${h.id}_` : ''}${this.causeTreeId() || 'demo'}.pdf`;
       pdf.save(filename);
     } catch (err: any) {
       console.error('[CauseTree][UI] exportPdf error', err);
@@ -682,6 +941,28 @@ export class CauseTreePageComponent {
 
   private deepClone<T>(val: T): T {
     return JSON.parse(JSON.stringify(val)) as T;
+  }
+
+  private withFactNumbers(root: CauseNode | null): CauseNode | null {
+    if (!root) return null;
+    const cloned = this.deepClone(root);
+
+    let counter = 1;
+    const walk = (node: CauseNode, isRoot = false) => {
+      node.meta = node.meta || {};
+      if (isRoot) {
+        (node.meta as any)['factNumber'] = (node.meta as any)['factNumber'] ?? 0;
+      } else {
+        if ((node.meta as any)['factNumber'] == null) {
+          (node.meta as any)['factNumber'] = counter;
+        }
+        counter += 1;
+      }
+      for (const c of node.children || []) walk(c, false);
+    };
+
+    walk(cloned, true);
+    return cloned;
   }
 
   private newNodeId(): string {

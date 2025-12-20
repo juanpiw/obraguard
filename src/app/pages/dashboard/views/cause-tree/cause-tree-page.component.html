@@ -32,10 +32,32 @@
   </div>
 
   <app-facts-editor
-    [tree]="tree()"
+    [tree]="displayTree()"
     [disabled]="loading() || saving()"
     (generate)="onFactsGenerate($event)"
   ></app-facts-editor>
+
+  <app-facts-legend [tree]="displayTree()"></app-facts-legend>
+
+  <app-report-ficha
+    [disabled]="loading() || reportLoading() || reportSaving()"
+    [ficha]="ficha()"
+    (save)="saveFicha($event)"
+  ></app-report-ficha>
+
+  <app-report-relato
+    [disabled]="loading() || reportLoading() || reportSaving()"
+    [relato]="relato()"
+    (save)="saveRelato($event)"
+  ></app-report-relato>
+
+  <app-report-measures
+    [disabled]="loading() || measuresLoading()"
+    [measures]="measures()"
+    (create)="createMeasure($event)"
+    (update)="updateMeasure($event)"
+    (remove)="deleteMeasure($event)"
+  ></app-report-measures>
 
   <div class="layout">
     <aside class="history-panel">
@@ -69,7 +91,7 @@
 
     <div class="canvas-wrapper">
       <app-cause-canvas
-        [tree]="tree()"
+        [tree]="displayTree()"
         (addNode)="openAdd($event)"
         (editNode)="openEdit($event)"
       ></app-cause-canvas>

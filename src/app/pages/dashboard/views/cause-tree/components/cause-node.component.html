@@ -13,9 +13,14 @@
     </div>
   </div>
 
-  <div class="node-card" [class.root-node]="isRoot" (click)="onEdit()">
-    <span class="badge" [ngClass]="badgeClass()">{{ node.type }}</span>
-    <p class="node-text">{{ node.text }}</p>
+  <div
+    class="node-circle"
+    [ngClass]="circleClass()"
+    [class.root-node]="isRoot"
+    (click)="onEdit()"
+    [title]="node.text"
+  >
+    <span class="circle-num">{{ displayNumber() }}</span>
 
     <button class="add-btn" type="button" (click)="onAdd($event)" aria-label="Añadir causa">
       <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">

@@ -131,6 +131,13 @@ export class HallazgoModalComponent {
       this.logInvalidForm('normal');
       return;
     }
+
+    // En modo manual, el objetivo es simplemente "Enviar reporte" (sin modal intermedio).
+    if (this.activeTab() === 'manual') {
+      void this.handleSubmit('normal');
+      return;
+    }
+
     this.selectedSubmitOption.set('normal');
     this.showSubmitOptions.update((v) => !v);
   }

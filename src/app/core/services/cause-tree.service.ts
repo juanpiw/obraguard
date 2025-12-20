@@ -55,6 +55,46 @@ export interface DeleteTreeResponse {
   deleted: boolean;
 }
 
+export interface CauseTreeReportResponse {
+  id: number | string | null;
+  causeTreeId: number | string;
+  hallazgoId?: number | string | null;
+  ficha: Record<string, any> | null;
+  relato: string | null;
+  createdAt?: string | null;
+  updatedAt?: string | null;
+}
+
+export interface UpsertReportPayload {
+  hallazgoId?: number | string | null;
+  ficha?: Record<string, any> | null;
+  relato?: string | null;
+}
+
+export interface MeasureItem {
+  id: number | string;
+  causeTreeId: number | string;
+  causeNodeId: string | null;
+  causaRaiz: string | null;
+  medidaCorrectiva: string;
+  responsable: string | null;
+  fechaCompromiso: string | null;
+  estado: string | null;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface CreateMeasurePayload {
+  causeNodeId?: string | null;
+  causaRaiz?: string | null;
+  medidaCorrectiva: string;
+  responsable?: string | null;
+  fechaCompromiso?: string | null;
+  estado?: string | null;
+}
+
+export type UpdateMeasurePayload = Partial<CreateMeasurePayload>;
+
 export interface CreateTreePayload {
   hallazgoId?: number | string | null;
   root: CauseNode;
@@ -134,6 +174,44 @@ export class CauseTreeService {
   deleteTree(id: number | string): Observable<DeleteTreeResponse> {
     return this.http
       .delete<{ data: DeleteTreeResponse }>(`${API_BASE}/api/cause-trees/${id}`)
+      .pipe(map((resp) => resp.data));
+  }
+
+  getReport(id: number | string): Observable<CauseTreeReportResponse> {
+    return this.http
+      .get<{ data: CauseTreeReportResponse }>(`${API_BASE}/api/cause-trees/${id}/report`)
+      .pipe(map((resp) => resp.data));
+  }
+
+  upsertReport(id: number | string, payload: UpsertReportPayload): Observable<CauseTreeReportResponse> {
+    return this.http
+      .put<{ data: CauseTreeReportResponse }>(`${API_BASE}/api/cause-trees/${id}/report`, payload)
+      .pipe(map((resp) => resp.data));
+  }
+
+  listMeasures(id: number | string): Observable<MeasureItem[]> {
+    return this.http
+      .get<{ data: MeasureItem[] }>(`${API_BASE}/api/cause-trees/${id}/measures`)
+      .pipe(map((resp) => resp.data));
+  }
+
+  createMeasure(id: number | string, payload: CreateMeasurePayload): Observable<MeasureItem> {
+    return this.http
+      .post<{ data: MeasureItem }>(`${API_BASE}/api/cause-trees/${id}/measures`, payload)
+      .pipe(map((resp) => resp.data));
+  }
+
+  updateMeasure(id: number | string, measureId: number | string, payload: UpdateMeasurePayload): Observable<MeasureItem> {
+    return this.http
+      .patch<{ data: MeasureItem }>(`${API_BASE}/api/cause-trees/${id}/measures/${measureId}`, payload)
+      .pipe(map((resp) => resp.data));
+  }
+
+  deleteMeasure(id: number | string, measureId: number | string): Observable<{ id: number | string; deleted: boolean }> {
+    return this.http
+      .delete<{ data: { id: number | string; deleted: boolean } }>(
+        `${API_BASE}/api/cause-trees/${id}/measures/${measureId}`
+      )
       .pipe(map((resp) => resp.data));
   }
 }

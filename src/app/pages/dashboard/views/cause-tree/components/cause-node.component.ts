@@ -16,17 +16,23 @@ export class CauseNodeComponent {
   @Output() addNode = new EventEmitter<number | string>();
   @Output() editNode = new EventEmitter<CauseNode>();
 
-  protected badgeClass(): string {
-    switch (this.node.type) {
-      case 'Accidente':
-        return 'badge-accidente';
-      case 'Gestión':
-        return 'badge-gestion';
-      case 'Condición':
-        return 'badge-condicion';
-      default:
-        return 'badge-hecho';
-    }
+  protected circleClass(): string {
+    const status = ((this.node?.meta as any)?.['status'] || '').toString();
+    if (status === 'Pendiente') return 'circle-pendiente';
+    if (this.isRoot || this.node.type === 'Accidente') return 'circle-accidente';
+    // Hechos/Condiciones/Acciones/Gestión: código simple azul/verde
+    if (this.node.type === 'Gestión') return 'circle-gestion';
+    if (this.node.type === 'Condición') return 'circle-condicion';
+    if (this.node.type === 'Acción') return 'circle-accion';
+    return 'circle-hecho';
+  }
+
+  protected displayNumber(): string {
+    if (this.isRoot || this.node.type === 'Accidente') return 'A';
+    const n = (this.node?.meta as any)?.['factNumber'];
+    if (typeof n === 'number' && Number.isFinite(n)) return String(n);
+    if (typeof n === 'string' && n.trim()) return n.trim();
+    return '?';
   }
 
   protected onAdd(event: Event): void {

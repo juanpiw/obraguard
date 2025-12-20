@@ -1,0 +1,38 @@
+<section class="report-card">
+  <header class="report-card__header">
+    <h3>Ficha</h3>
+    <button type="button" class="primary" (click)="save.emit(ficha)" [disabled]="disabled">Guardar ficha</button>
+  </header>
+
+  <div class="grid">
+    <label>
+      <span>Empresa</span>
+      <input [(ngModel)]="ficha.empresa" [disabled]="disabled" placeholder="Ej: Constructora X" />
+    </label>
+    <label>
+      <span>Nombre</span>
+      <input [(ngModel)]="ficha.nombre" [disabled]="disabled" placeholder="Nombre trabajador" />
+    </label>
+    <label>
+      <span>RUT</span>
+      <input [(ngModel)]="ficha.rut" [disabled]="disabled" placeholder="12.345.678-9" />
+    </label>
+    <label>
+      <span>Cargo</span>
+      <input [(ngModel)]="ficha.cargo" [disabled]="disabled" placeholder="Ej: Operador" />
+    </label>
+    <label>
+      <span>Fecha</span>
+      <input type="date" [(ngModel)]="ficha.fecha" [disabled]="disabled" />
+    </label>
+    <label>
+      <span>Hora</span>
+      <input type="time" [(ngModel)]="ficha.hora" [disabled]="disabled" />
+    </label>
+    <label class="span2">
+      <span>Lugar</span>
+      <input [(ngModel)]="ficha.lugar" [disabled]="disabled" placeholder="Ej: Obra Torre B - Piso 2" />
+    </label>
+  </div>
+</section>
+

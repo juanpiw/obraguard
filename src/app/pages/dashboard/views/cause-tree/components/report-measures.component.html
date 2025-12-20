@@ -1,0 +1,31 @@
+<section class="report-card">
+  <header class="report-card__header">
+    <div>
+      <h3>Medidas de Control</h3>
+      <p class="muted">Tabla: Causa Raíz | Medida Correctiva | Responsable/Fecha</p>
+    </div>
+    <button type="button" class="primary" (click)="addRow()" [disabled]="disabled">+ Medida</button>
+  </header>
+
+  <div class="table">
+    <div class="row head">
+      <span>Causa raíz</span>
+      <span>Medida correctiva</span>
+      <span>Responsable</span>
+      <span>Fecha</span>
+      <span>Acciones</span>
+    </div>
+
+    <div class="row" *ngFor="let m of measures">
+      <input [(ngModel)]="m.causaRaiz" [disabled]="disabled" placeholder="Ej: Falta de estabilizadores" />
+      <textarea [(ngModel)]="m.medidaCorrectiva" [disabled]="disabled" rows="2" placeholder="Ej: Instalar estabilizadores..."></textarea>
+      <input [(ngModel)]="m.responsable" [disabled]="disabled" placeholder="Ej: Jefe de obra" />
+      <input type="date" [(ngModel)]="m.fechaCompromiso" [disabled]="disabled" />
+      <div class="actions">
+        <button type="button" class="mini" (click)="saveRow(m)" [disabled]="disabled">Guardar</button>
+        <button type="button" class="mini danger" (click)="remove.emit(m.id)" [disabled]="disabled">Eliminar</button>
+      </div>
+    </div>
+  </div>
+</section>
+

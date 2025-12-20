@@ -273,6 +273,27 @@
   }
 }
 
+.form-field textarea {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  border: 1px solid #d1d5db;
+  font-size: 0.95rem;
+  transition: border 0.2s ease, box-shadow 0.2s ease;
+  resize: vertical;
+
+  &:focus {
+    outline: none;
+    border-color: #6366f1;
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.25);
+  }
+}
+
+.field-hint {
+  color: #64748b;
+  font-size: 0.85rem;
+}
+
 .form-checkbox {
   display: flex;
   align-items: center;

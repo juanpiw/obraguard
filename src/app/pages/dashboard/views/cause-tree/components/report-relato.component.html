@@ -1,0 +1,14 @@
+<section class="report-card">
+  <header class="report-card__header">
+    <h3>Relato</h3>
+    <button type="button" class="primary" (click)="save.emit(relato)" [disabled]="disabled">Guardar relato</button>
+  </header>
+
+  <textarea
+    rows="5"
+    [(ngModel)]="relato"
+    [disabled]="disabled"
+    placeholder="Relato: qué pasó, en texto plano y cronológico."
+  ></textarea>
+</section>
+
