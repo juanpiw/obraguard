@@ -115,6 +115,10 @@
           <span *ngIf="item.regulation" class="regulation">{{ item.regulation }}</span>
           Reportado por {{ item.detectedBy }}. Asignado a: <strong>{{ item.assignedTo }}</strong>.
         </p>
+        <p class="ia-reco">
+          <strong>Recomendación IA:</strong>
+          <span>{{ item.recommendation || '—' }}</span>
+        </p>
       </div>
 
       <div class="card__footer">

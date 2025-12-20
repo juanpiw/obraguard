@@ -18,7 +18,8 @@ interface Finding {
   status: FindingStatus;
   detectedBy: 'IA' | 'Manual';
   timestamp: Date;
-  regulation?: string;
+  regulation?: string; // norma o referencia
+  recommendation?: string; // texto IA / descripcion
   assignedTo?: string;
   imageUrl?: string;
   comments: number;
@@ -222,6 +223,7 @@ export class HallazgosPageComponent {
       detectedBy: 'IA',
       timestamp: h.fecha ? new Date(h.fecha) : new Date(),
       regulation: h.descripcion_ai || undefined,
+      recommendation: h.descripcion_ai || undefined,
       assignedTo: h.reportero || 'Equipo',
       comments: 0,
       sentTo: []
