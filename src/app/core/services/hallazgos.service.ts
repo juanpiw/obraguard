@@ -11,8 +11,8 @@ import { CauseNode } from '../models/cause-tree.model';
 const API_BASE =
   (globalThis as { AF_API_URL?: string }).AF_API_URL ||
   (import.meta as { env?: Record<string, string> }).env?.['NG_APP_API_URL'] ||
-  (typeof window !== 'undefined' ? window.location.origin : '') ||
-  'https://www.api.thefutureagencyai.com';
+  'https://www.api.thefutureagencyai.com' ||
+  (typeof window !== 'undefined' ? window.location.origin : '');
 
 export interface AnalyzeResponse {
   descripcion: string;

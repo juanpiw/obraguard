@@ -317,76 +317,45 @@ export class CauseTreePageComponent {
       return;
     }
 
+    const id = this.causeTreeId();
+    if (!id) {
+      this.error.set('Primero guarda/abre un árbol existente (necesitamos ?id=) para generar con IA.');
+      return;
+    }
+
     this.error.set(null);
     this.aiStatus.set('working');
     this.aiMessage.set('Detectando palabras clave y variaciones del hallazgo...');
 
     window.setTimeout(() => {
       this.aiMessage.set('Correlacionando hechos (cadena / conjunción / disyunción)...');
-    }, 900);
+    }, 700);
 
     window.setTimeout(() => {
-      this.aiMessage.set('Generando borrador inicial de causas previas...');
-      const updated = this.deepClone(current);
+      this.aiMessage.set('Solicitando borrador a Gemini...');
+    }, 1400);
 
-      // Si está vacío, creamos ramas base (Condición/Acción/Gestión) como borrador.
-      if (!updated.children || updated.children.length === 0) {
-        updated.children = [
-          {
-            id: this.newNodeId(),
-            text: 'Condición previa (hecho verificable)',
-            type: 'Condición',
-            children: [],
-            childrenLogic: 'AND',
-            notes: null
-          },
-          {
-            id: this.newNodeId(),
-            text: 'Acción previa (hecho verificable)',
-            type: 'Acción',
-            children: [],
-            childrenLogic: 'AND',
-            notes: null
-          },
-          {
-            id: this.newNodeId(),
-            text: 'Gestión/organización (hecho verificable)',
-            type: 'Gestión',
-            children: [],
-            childrenLogic: 'AND',
-            notes: null
-          }
-        ];
-        updated.childrenLogic = 'AND';
-      } else {
-        // Si ya hay causas, expandimos 1 nivel para facilitar la discusión.
-        updated.childrenLogic = updated.childrenLogic || (updated.children.length > 1 ? 'AND' : 'OR');
-        for (const child of updated.children) {
-          if (!child.children || child.children.length === 0) {
-            child.children = [
-              {
-                id: this.newNodeId(),
-                text: 'Hecho previo (por investigar)',
-                type: 'Hecho',
-                children: [],
-                childrenLogic: 'AND',
-                notes: null
-              }
-            ];
-            child.childrenLogic = child.childrenLogic || 'AND';
-          }
+    this.service
+      .generateAi(id, { mode: 'overwrite' })
+      .pipe(
+        finalize(() => {
+          // Si falló, volvemos a idle; si tuvo éxito, dejamos done abajo.
+          if (this.aiStatus() === 'working') this.aiStatus.set('idle');
+        }),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe({
+        next: (resp) => {
+          this.tree.set(resp.root);
+          this.aiStatus.set('done');
+          this.aiMessage.set('Árbol generado. Revisa hechos vs. juicios y ajusta con evidencia.');
+          this.loadHistory();
+        },
+        error: (err) => {
+          console.error('[CauseTree][UI] ai generate error', err);
+          this.error.set('No se pudo generar con IA. Revisa conexión / API key y vuelve a intentar.');
         }
-      }
-
-      this.tree.set(updated);
-      this.aiStatus.set('done');
-      this.persistTree(updated, {
-        source: 'ui_generate_ai_stub',
-        action: 'ai_generate',
-        stage: 'Etapa4',
-        method: 'heuristic'
       });
-    }, 2400);
   }
 
   protected resetTree(): void {
