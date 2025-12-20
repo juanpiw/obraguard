@@ -23,7 +23,9 @@
           @for (f of iperFiles(); track f.id) {
             <a class="iper-item" [href]="f.iper_url" target="_blank" rel="noopener">
               <div>
-                <p class="iper-item__title">{{ f.titulo || ('IPER #' + f.id) }}</p>
+                <p class="iper-item__title">
+                  {{ (f.iper_url?.split('/')?.pop()) || f.titulo || ('IPER #' + f.id) }}
+                </p>
                 <small>Obra: {{ f.obraId || 'N/D' }} · Riesgo: {{ f.riesgo || '—' }}</small>
               </div>
               <span class="iper-item__badge">Descargar</span>
@@ -67,7 +69,7 @@
     </article>
   </div>
 
-  <div class="dashboard-home__analytics">
+  <div class="dashboard-home__analytics analytics--disabled">
     <article class="heatmap-card">
       <header>
         <div>
