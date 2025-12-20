@@ -10,7 +10,6 @@ import { DocumentosPageComponent } from './pages/dashboard/views/documentos-page
 import { EquipoPageComponent } from './pages/dashboard/views/equipo-page.component';
 import { BusinessModelComponent } from './pages/business-model/business-model.component';
 import { IncidentesPageComponent } from './pages/dashboard/views/incidentes-page.component';
-import { CauseTreePageComponent } from './pages/dashboard/views/cause-tree/cause-tree-page.component';
 
 export const routes: Routes = [
   {
@@ -79,7 +78,10 @@ export const routes: Routes = [
       },
       {
         path: 'arbol-causas',
-        component: CauseTreePageComponent,
+        loadComponent: () =>
+          import('./pages/dashboard/views/cause-tree/cause-tree-page.component').then(
+            (m) => m.CauseTreePageComponent
+          ),
         data: { title: 'Árbol de Causas' }
       },
       {
