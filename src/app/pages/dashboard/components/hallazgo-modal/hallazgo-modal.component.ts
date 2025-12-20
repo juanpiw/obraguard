@@ -80,9 +80,11 @@ export class HallazgoModalComponent {
     this.aiLoading.set(true);
     this.aiMessage.set(null);
     try {
+      console.log('[Hallazgos][IA] Iniciando análisis de evidencia...');
       const formData = new FormData();
       formData.append('file', this.selectedFile);
       const resp = await firstValueFrom(this.hallazgosService.analyzeEvidence(formData));
+      console.log('[Hallazgos][IA] Respuesta', resp);
       this.form.get('riesgo')?.setValue(resp.riesgo);
       this.aiMessage.set(resp.descripcion);
       this.aiDescripcion.set(resp.descripcion);
@@ -91,6 +93,7 @@ export class HallazgoModalComponent {
       this.analyzedMediaUrl = resp.mediaUrl ?? null;
       this.analyzedDescripcion = resp.descripcion ?? null;
     } catch (err: any) {
+      console.error('[Hallazgos][IA] Error', err);
       this.aiMessage.set(err?.message || 'No se pudo analizar la evidencia.');
     } finally {
       this.aiLoading.set(false);
