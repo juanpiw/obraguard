@@ -150,8 +150,11 @@ export class HallazgoModalComponent {
             ? `Hallazgo "${payload.titulo}" enviado con árbol de causa.`
             : `Hallazgo "${payload.titulo}" reportado con éxito.`
       );
-      if (mode === 'arbol' && saved?.id) {
-        void this.router.navigate(['/arbol-causa', saved.id]);
+      if (mode === 'arbol') {
+        const treeId = saved?.id ?? '';
+        void this.router.navigate(['/app/arbol-causas'], {
+          queryParams: treeId ? { id: treeId } : {}
+        });
       }
       this.form.reset({
         titulo: '',
