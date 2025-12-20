@@ -17,6 +17,12 @@ export interface CauseTreeResponse {
   updatedAt?: string;
 }
 
+export interface UpdateTreePayload {
+  hallazgoId?: number | string | null;
+  root: CauseNode;
+  meta?: Record<string, any>;
+}
+
 export interface UpsertHallazgoPayload {
   root: CauseNode;
   treeId?: number | string | null;
@@ -55,6 +61,12 @@ export class CauseTreeService {
   createTree(payload: CreateTreePayload): Observable<CauseTreeResponse> {
     return this.http
       .post<{ data: CauseTreeResponse }>(`${API_BASE}/api/cause-trees`, payload)
+      .pipe(map((resp) => resp.data));
+  }
+
+  updateTree(id: number | string, payload: UpdateTreePayload): Observable<CauseTreeResponse> {
+    return this.http
+      .patch<{ data: CauseTreeResponse }>(`${API_BASE}/api/cause-trees/${id}`, payload)
       .pipe(map((resp) => resp.data));
   }
 

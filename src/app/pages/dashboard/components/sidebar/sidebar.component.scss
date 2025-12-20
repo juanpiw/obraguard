@@ -79,21 +79,37 @@
 .sidebar__profile {
   padding: 1rem;
   border-top: 1px solid rgba(148, 163, 184, 0.1);
+  position: relative;
+}
+
+.sidebar__profile-btn {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: inherit;
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  padding: 0.35rem 0.5rem;
+  border-radius: 0.75rem;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.2s ease;
 
-  img {
-    width: 2.5rem;
-    height: 2.5rem;
-    border-radius: 999px;
-    object-fit: cover;
+  &:hover {
+    background: rgba(79, 70, 229, 0.18);
   }
+}
+
+.sidebar__profile-meta {
+  flex: 1;
+  min-width: 0;
 
   p {
     margin: 0;
     font-weight: 600;
     color: #fff;
+    line-height: 1.1;
   }
 
   small {
@@ -101,6 +117,64 @@
   }
 }
 
+.sidebar__profile-btn img {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 999px;
+  object-fit: cover;
+}
+
+.sidebar__chevron {
+  width: 1.1rem;
+  height: 1.1rem;
+  color: #94a3b8;
+}
+
+.profile-menu__backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(2, 6, 23, 0.35);
+  z-index: 60;
+}
+
+.profile-menu {
+  position: absolute;
+  left: 1rem;
+  right: 1rem;
+  bottom: calc(100% + 0.75rem);
+  background: rgba(15, 23, 42, 0.95);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-radius: 0.75rem;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
+  z-index: 61;
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+}
+
+.profile-menu__item {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: #e5e7eb;
+  padding: 0.85rem 0.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  font-weight: 600;
+
+  &:hover {
+    background: rgba(79, 70, 229, 0.22);
+  }
+}
+
+.profile-menu__item--danger {
+  color: #fecaca;
+
+  &:hover {
+    background: rgba(239, 68, 68, 0.18);
+  }
+}
 
 
 

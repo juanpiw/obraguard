@@ -22,12 +22,35 @@
     }
   </nav>
 
-  <div class="sidebar__profile">
-    <img src="https://placehold.co/100x100/667eea/ffffff?text=RM" alt="Foto de perfil" />
-    <div>
-      <p>Ricardo Morales</p>
-      <small>Jefe de Obra</small>
-    </div>
+  <div class="sidebar__profile" (click)="$event.stopPropagation()">
+    <button
+      type="button"
+      class="sidebar__profile-btn"
+      (click)="toggleProfileMenu($event)"
+      [attr.aria-expanded]="profileMenuOpen()"
+      aria-haspopup="menu"
+    >
+      <img src="https://placehold.co/100x100/667eea/ffffff?text=RM" alt="Foto de perfil" />
+      <div class="sidebar__profile-meta">
+        <p>Ricardo Morales</p>
+        <small>Jefe de Obra</small>
+      </div>
+      <svg class="sidebar__chevron" viewBox="0 0 24 24" stroke-width="1.5" fill="none" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+      </svg>
+    </button>
+
+    @if (profileMenuOpen()) {
+      <div class="profile-menu__backdrop" (click)="closeProfileMenu()"></div>
+      <div class="profile-menu" role="menu" (click)="$event.stopPropagation()">
+        <button type="button" role="menuitem" class="profile-menu__item" (click)="goToLanding()">
+          Ir a la landing
+        </button>
+        <button type="button" role="menuitem" class="profile-menu__item profile-menu__item--danger" (click)="logout()">
+          Cerrar sesión
+        </button>
+      </div>
+    }
   </div>
 </aside>
 

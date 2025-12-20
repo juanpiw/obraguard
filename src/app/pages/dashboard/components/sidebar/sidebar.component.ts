@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { Component, EventEmitter, HostListener, Input, Output, inject, signal } from '@angular/core';
+import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 
 interface SidebarLink {
   label: string;
@@ -21,8 +21,54 @@ export class DashboardSidebarComponent {
 
   @Output() navigate = new EventEmitter<void>();
 
+  private readonly router = inject(Router);
+
+  protected readonly profileMenuOpen = signal(false);
+
   protected handleNavigate(): void {
     this.navigate.emit();
+  }
+
+  protected toggleProfileMenu(event?: Event): void {
+    event?.stopPropagation();
+    this.profileMenuOpen.update((v) => !v);
+  }
+
+  protected closeProfileMenu(): void {
+    this.profileMenuOpen.set(false);
+  }
+
+  @HostListener('document:click')
+  protected onDocumentClick(): void {
+    if (this.profileMenuOpen()) {
+      this.closeProfileMenu();
+    }
+  }
+
+  @HostListener('document:keydown.escape')
+  protected onEscape(): void {
+    this.closeProfileMenu();
+  }
+
+  protected async goToLanding(): Promise<void> {
+    this.closeProfileMenu();
+    this.handleNavigate();
+    await this.router.navigateByUrl('/');
+  }
+
+  protected async logout(): Promise<void> {
+    // Hoy el login no persiste sesión, pero limpiamos keys típicas por seguridad.
+    try {
+      const keys = ['token', 'access_token', 'auth_token', 'jwt', 'guest_id'];
+      keys.forEach((k) => {
+        localStorage.removeItem(k);
+        sessionStorage.removeItem(k);
+      });
+    } catch {
+      // ignore
+    }
+
+    await this.goToLanding();
   }
 
   protected iconPath(icon: SidebarLink['icon']): string {

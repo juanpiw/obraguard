@@ -9,11 +9,12 @@ import {
 import { ActivatedRoute, Router } from '@angular/router';
 import { finalize, tap } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { CauseNode } from '../../../../core/models/cause-tree.model';
+import { CauseChildrenLogic, CauseNode, CauseNodeType } from '../../../../core/models/cause-tree.model';
 import { CauseTreeService } from '../../../../core/services/cause-tree.service';
 import { CauseCanvasComponent } from './components/cause-canvas.component';
 import { NodeModalComponent } from './components/node-modal.component';
 import { AiToastComponent } from './components/ai-toast.component';
+import { NodeModalMode } from './components/node-modal.component';
 
 const DEMO_TREE: CauseNode = {
   id: 1,
@@ -106,12 +107,22 @@ export class CauseTreePageComponent {
   protected readonly history = signal<{ id: number | string; hallazgoId?: number | string | null; updatedAt?: string }[]>([]);
 
   protected readonly modalOpen = signal(false);
+  protected readonly modalMode = signal<NodeModalMode>('add');
+  protected readonly modalInitialText = signal('');
+  protected readonly modalInitialType = signal<CauseNodeType>('Condición');
+  protected readonly modalInitialNotes = signal('');
+  protected readonly modalInitialChildrenLogic = signal<CauseChildrenLogic>('AND');
+
+  private readonly modalTargetNodeId = signal<number | string | null>(null);
+  private readonly modalParentId = signal<number | string | null>(null);
 
   protected readonly causeTreeId = computed(() => this.selectedTreeId());
 
   protected readonly aiTitle = computed(() =>
     this.aiStatus() === 'working' ? 'Generando árbol con IA...' : 'Procesando con IA...'
   );
+
+  protected readonly aiMessage = signal('Detectando palabras clave y variaciones del hallazgo...');
 
   constructor() {
     this.readPrefillState();
@@ -210,28 +221,187 @@ export class CauseTreePageComponent {
       });
   }
 
-  protected openAdd(): void {
-    this.error.set('Edición de árbol no disponible en esta vista.');
+  protected openAdd(parentId: number | string): void {
+    this.error.set(null);
+    this.modalMode.set('add');
+    this.modalParentId.set(parentId);
+    this.modalTargetNodeId.set(null);
+    this.modalInitialText.set('');
+    this.modalInitialType.set('Condición');
+    this.modalInitialNotes.set('');
+    this.modalInitialChildrenLogic.set('AND');
+    this.modalOpen.set(true);
   }
 
-  protected openEdit(): void {
-    this.error.set('Edición de árbol no disponible en esta vista.');
+  protected openEdit(node: CauseNode): void {
+    this.error.set(null);
+    this.modalMode.set('edit');
+    this.modalTargetNodeId.set(node.id);
+    this.modalParentId.set(null);
+    this.modalInitialText.set(node.text);
+    this.modalInitialType.set(node.type);
+    this.modalInitialNotes.set(node.notes || '');
+    this.modalInitialChildrenLogic.set((node.childrenLogic || 'AND') as CauseChildrenLogic);
+    this.modalOpen.set(true);
   }
 
   protected closeModal(): void {
     this.modalOpen.set(false);
   }
 
-  protected saveNode(): void {
-    this.error.set('Edición de árbol no disponible en esta vista.');
+  protected saveNode(payload: {
+    text: string;
+    type: CauseNodeType;
+    notes?: string;
+    childrenLogic?: CauseChildrenLogic;
+  }): void {
+    const current = this.tree();
+    if (!current) {
+      this.error.set('No hay árbol cargado para editar.');
+      return;
+    }
+
+    const mode = this.modalMode();
+    const updated = this.deepClone(current);
+
+    if (mode === 'add') {
+      const parentId = this.modalParentId();
+      if (!parentId) {
+        this.error.set('No se pudo determinar el nodo padre.');
+        return;
+      }
+      const parent = this.findNode(updated, parentId);
+      if (!parent) {
+        this.error.set('No se encontró el nodo padre para agregar la causa.');
+        return;
+      }
+      parent.children = parent.children || [];
+      parent.children.push({
+        id: this.newNodeId(),
+        text: payload.text,
+        type: payload.type,
+        children: [],
+        childrenLogic: (payload.childrenLogic || 'AND') as CauseChildrenLogic,
+        notes: (payload.notes || '').trim() || null
+      });
+      // Si el padre tiene más de un hijo, por defecto tratamos como conjunción (AND)
+      if ((parent.children?.length || 0) > 1 && !parent.childrenLogic) {
+        parent.childrenLogic = 'AND';
+      }
+    } else {
+      const nodeId = this.modalTargetNodeId();
+      if (!nodeId) {
+        this.error.set('No se pudo determinar el nodo a editar.');
+        return;
+      }
+      const node = this.findNode(updated, nodeId);
+      if (!node) {
+        this.error.set('No se encontró el nodo a editar.');
+        return;
+      }
+      node.text = payload.text;
+      node.type = payload.type;
+      node.notes = (payload.notes || '').trim() || null;
+      node.childrenLogic = (payload.childrenLogic || node.childrenLogic || 'AND') as CauseChildrenLogic;
+    }
+
+    this.tree.set(updated);
+    this.closeModal();
+    this.persistTree(updated);
   }
 
   protected generateAiTree(): void {
-    this.error.set('Generar con IA no está disponible todavía.');
+    const current = this.tree();
+    if (!current) {
+      this.error.set('No hay árbol para generar.');
+      return;
+    }
+
+    this.error.set(null);
+    this.aiStatus.set('working');
+    this.aiMessage.set('Detectando palabras clave y variaciones del hallazgo...');
+
+    window.setTimeout(() => {
+      this.aiMessage.set('Correlacionando hechos (cadena / conjunción / disyunción)...');
+    }, 900);
+
+    window.setTimeout(() => {
+      this.aiMessage.set('Generando borrador inicial de causas previas...');
+      const updated = this.deepClone(current);
+
+      // Si está vacío, creamos ramas base (Condición/Acción/Gestión) como borrador.
+      if (!updated.children || updated.children.length === 0) {
+        updated.children = [
+          {
+            id: this.newNodeId(),
+            text: 'Condición previa (hecho verificable)',
+            type: 'Condición',
+            children: [],
+            childrenLogic: 'AND',
+            notes: null
+          },
+          {
+            id: this.newNodeId(),
+            text: 'Acción previa (hecho verificable)',
+            type: 'Acción',
+            children: [],
+            childrenLogic: 'AND',
+            notes: null
+          },
+          {
+            id: this.newNodeId(),
+            text: 'Gestión/organización (hecho verificable)',
+            type: 'Gestión',
+            children: [],
+            childrenLogic: 'AND',
+            notes: null
+          }
+        ];
+        updated.childrenLogic = 'AND';
+      } else {
+        // Si ya hay causas, expandimos 1 nivel para facilitar la discusión.
+        updated.childrenLogic = updated.childrenLogic || (updated.children.length > 1 ? 'AND' : 'OR');
+        for (const child of updated.children) {
+          if (!child.children || child.children.length === 0) {
+            child.children = [
+              {
+                id: this.newNodeId(),
+                text: 'Hecho previo (por investigar)',
+                type: 'Hecho',
+                children: [],
+                childrenLogic: 'AND',
+                notes: null
+              }
+            ];
+            child.childrenLogic = child.childrenLogic || 'AND';
+          }
+        }
+      }
+
+      this.tree.set(updated);
+      this.aiStatus.set('done');
+      this.persistTree(updated, {
+        source: 'ui_generate_ai_stub',
+        action: 'ai_generate',
+        stage: 'Etapa4',
+        method: 'heuristic'
+      });
+    }, 2400);
   }
 
   protected resetTree(): void {
-    this.error.set('Reinicio no disponible en esta vista.');
+    this.error.set(null);
+    this.aiStatus.set('idle');
+    const id = this.causeTreeId();
+    if (id) {
+      this.loadTree(id);
+      return;
+    }
+    if (this.prefillRoot()) {
+      this.tree.set(this.prefillRoot());
+      return;
+    }
+    this.tree.set(DEMO_TREE);
   }
 
   protected selectTree(id: number | string): void {
@@ -240,5 +410,46 @@ export class CauseTreePageComponent {
       queryParams: { id },
       queryParamsHandling: 'merge'
     });
+  }
+
+  private persistTree(root: CauseNode, meta: Record<string, any> = { source: 'ui_edit' }): void {
+    const id = this.causeTreeId();
+    if (!id) {
+      // Sin id, guardamos solo en memoria (modo prefill/demo)
+      return;
+    }
+
+    this.saving.set(true);
+    this.service
+      .updateTree(id, { root, meta })
+      .pipe(finalize(() => this.saving.set(false)), takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (resp) => {
+          this.tree.set(resp.root);
+          // refrescar historial para ver updatedAt
+          this.loadHistory();
+        },
+        error: (err) => {
+          console.error('[CauseTree][UI] save error', err);
+          this.error.set('No se pudo guardar el árbol. Revisa conexión o vuelve a intentar.');
+        }
+      });
+  }
+
+  private findNode(node: CauseNode, id: number | string): CauseNode | null {
+    if (node.id === id) return node;
+    for (const child of node.children || []) {
+      const found = this.findNode(child, id);
+      if (found) return found;
+    }
+    return null;
+  }
+
+  private deepClone<T>(val: T): T {
+    return JSON.parse(JSON.stringify(val)) as T;
+  }
+
+  private newNodeId(): string {
+    return `n${Date.now()}_${Math.floor(Math.random() * 1e6)}`;
   }
 }

@@ -40,6 +40,7 @@ export class CauseCanvasComponent implements AfterViewInit, OnChanges {
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['tree'] && !changes['tree'].firstChange) {
+      // Mantener la UX de “lienzo infinito”: centra suavemente al actualizar el árbol.
       setTimeout(() => this.centerRoot(), 50);
     }
   }
@@ -76,7 +77,9 @@ export class CauseCanvasComponent implements AfterViewInit, OnChanges {
   private centerRoot(): void {
     const canvas = this.canvasRef?.nativeElement;
     if (!canvas) return;
+    // En row-reverse, el “inicio visual” está a la derecha; este centrado mantiene
+    // la raíz visible para discusión retrospectiva.
     canvas.scrollLeft = canvas.scrollWidth / 2;
-    canvas.scrollTop = 0;
+    canvas.scrollTop = Math.max(0, canvas.scrollTop);
   }
 }

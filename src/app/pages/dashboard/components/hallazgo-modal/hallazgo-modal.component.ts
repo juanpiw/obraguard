@@ -8,7 +8,7 @@ import {
 import { Router } from '@angular/router';
 import { HallazgosService } from '../../../../core/services/hallazgos.service';
 import { HallazgoRiesgo } from '../../../../core/models/hallazgo.model';
-import { CauseNode } from '../../../../core/models/cause-tree.model';
+import { CauseNode, CauseChildrenLogic } from '../../../../core/models/cause-tree.model';
 import { firstValueFrom } from 'rxjs';
 
 const REPORTERO_DEFAULT = 'Carolina Vega (Prevencionista)';
@@ -263,14 +263,20 @@ export class HallazgoModalComponent {
             id: `c${idx + 1}`,
             text: c,
             type: 'Hecho',
-            children: []
+            children: [],
+            childrenLogic: 'AND' as CauseChildrenLogic,
+            notes: null,
+            meta: { source: 'hallazgo_ai_causa' }
           }))
         : [
             {
               id: 'c1',
               text: sector ? `Visto en ${sector}` : 'Causa pendiente de análisis',
               type: 'Hecho',
-              children: []
+              children: [],
+              childrenLogic: 'AND' as CauseChildrenLogic,
+              notes: null,
+              meta: { source: 'hallazgo_fallback' }
             }
           ];
 
@@ -278,7 +284,18 @@ export class HallazgoModalComponent {
       id: 'root',
       text: descripcion || titulo,
       type: riesgo === 'Alto' ? 'Accidente' : 'Hecho',
-      children
+      children,
+      // Por defecto, si hay múltiples causas sugeridas, asumimos conjunción (AND)
+      childrenLogic: (children.length > 1 ? 'AND' : 'OR') as CauseChildrenLogic,
+      notes: null,
+      meta: {
+        source: 'hallazgo_modal',
+        titulo,
+        riesgo,
+        sector: sector || null,
+        mediaId: this.analyzedMediaId ?? null,
+        mediaUrl: this.analyzedMediaUrl ?? null
+      }
     };
   }
 

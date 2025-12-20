@@ -18,6 +18,17 @@
           rows="3"
           placeholder="Ej: Fuga de líquido hidráulico"
         ></textarea>
+        <small class="helper">
+          Regla de oro: en el árbol solo entran <strong>hechos probados</strong>. Evita juicios (“negligencia”) o
+          interpretaciones (“estaba distraído”) sin hecho observable.
+        </small>
+        <div class="warning" *ngIf="showJudgementWarning()">
+          <p>
+            Esto suena a juicio/interpretación. Reformúlalo a un hecho observable (ej: “miraba el celular”) o guárdalo en
+            notas.
+          </p>
+          <button type="button" class="link-btn" (click)="moveTextToNotes()">Mover a notas</button>
+        </div>
       </label>
 
       <div class="field">
@@ -57,6 +68,40 @@
           </button>
         </div>
       </div>
+
+      <div class="field" *ngIf="mode === 'edit'">
+        <span>Vinculación lógica entre causas (hijos)</span>
+        <div class="type-grid type-grid--two">
+          <button
+            type="button"
+            class="type-btn"
+            [class.type-btn--active]="childrenLogic === 'AND'"
+            (click)="setChildrenLogic('AND')"
+            title="Conjunción: se requieren varios hechos simultáneamente"
+          >
+            AND
+          </button>
+          <button
+            type="button"
+            class="type-btn"
+            [class.type-btn--active]="childrenLogic === 'OR'"
+            (click)="setChildrenLogic('OR')"
+            title="Disyunción: cualquiera de los hechos puede explicar/causar este hecho"
+          >
+            OR
+          </button>
+        </div>
+      </div>
+
+      <label class="field">
+        <span>Notas (interpretaciones/juicios)</span>
+        <textarea
+          [(ngModel)]="notes"
+          rows="2"
+          placeholder="Ej: Hipótesis, percepciones del equipo, frases textuales (no comprobadas)."
+        ></textarea>
+        <small class="helper">Estas notas no se consideran “hechos probados” en el árbol.</small>
+      </label>
     </div>
 
     <footer class="modal__footer">

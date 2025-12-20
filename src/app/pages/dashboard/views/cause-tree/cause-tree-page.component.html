@@ -49,25 +49,27 @@
     <div class="canvas-wrapper">
       <app-cause-canvas
         [tree]="tree()"
-        (addNode)="openAdd()"
-        (editNode)="openEdit()"
+        (addNode)="openAdd($event)"
+        (editNode)="openEdit($event)"
       ></app-cause-canvas>
     </div>
   </div>
 
   <app-node-modal
     [open]="modalOpen()"
-    [mode]="'add'"
+    [mode]="modalMode()"
     [saving]="saving()"
-    [initialText]="''"
-    [initialType]="'Condición'"
+    [initialText]="modalInitialText()"
+    [initialType]="modalInitialType()"
+    [initialNotes]="modalInitialNotes()"
+    [initialChildrenLogic]="modalInitialChildrenLogic()"
     (cancel)="closeModal()"
-    (save)="saveNode()"
+    (save)="saveNode($event)"
   ></app-node-modal>
 
   <app-ai-toast
     [title]="aiTitle()"
-    message="Correlacionando hechos y generando nodos previos."
+    [message]="aiMessage()"
     [visible]="aiStatus() === 'working'"
   ></app-ai-toast>
 </section>

@@ -1,5 +1,8 @@
 <div class="node-wrapper">
   <div class="node-children" *ngIf="node.children?.length">
+    <div class="children-logic" *ngIf="node.children.length > 1">
+      {{ node.childrenLogic || 'AND' }}
+    </div>
     <div class="child-row" *ngFor="let child of node.children">
       <div class="connector-h"></div>
       <app-cause-node

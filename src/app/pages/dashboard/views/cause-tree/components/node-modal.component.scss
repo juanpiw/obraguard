@@ -80,12 +80,47 @@
     outline: 2px solid #f59e0b;
     border-color: #f59e0b;
   }
+
+  .helper {
+    font-size: 0.78rem;
+    color: rgba(203, 213, 225, 0.8);
+    line-height: 1.35;
+  }
+}
+
+.warning {
+  padding: 0.6rem 0.75rem;
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  background: rgba(245, 158, 11, 0.08);
+  border-radius: 0.6rem;
+  color: #fde68a;
+
+  p {
+    margin: 0;
+    font-size: 0.82rem;
+    line-height: 1.35;
+  }
+}
+
+.link-btn {
+  margin-top: 0.35rem;
+  border: 0;
+  background: transparent;
+  color: #fbbf24;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+  text-align: left;
 }
 
 .type-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.5rem;
+}
+
+.type-grid--two {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .type-btn {
