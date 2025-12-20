@@ -39,12 +39,35 @@ export interface CreateHallazgoPayload {
   causeTreeId?: number | string | null;
 }
 
+export interface HallazgoListItemResponse {
+  id: number;
+  estado?: HallazgoEstado;
+  riesgo: HallazgoRiesgo;
+  titulo: string;
+  reporter?: string | null;
+  fecha?: string | null;
+  sector?: string | null;
+  descripcion_ai?: string | null;
+  media_url?: string | null;
+  media_type?: string | null;
+  cause_tree_id?: number | string | null;
+}
+
+export interface HallazgoStatsResponse {
+  openCount: number;
+  closedLast7Days: number;
+  avgCloseDays: number | null;
+  newVsPrevWeek: number | null;
+  riskLevel: HallazgoRiesgo | null;
+}
+
 @Injectable({ providedIn: 'root' })
 export class HallazgosService {
   private readonly http = inject(HttpClient);
 
-  // Datos locales para UI mientras no hay endpoint GET
+  // Datos locales para UI + carga desde backend
   private readonly hallazgosSignal = signal<Hallazgo[]>([]);
+  private readonly statsSignal = signal<HallazgoStatsResponse | null>(null);
 
   readonly hallazgos = computed(() =>
     [...this.hallazgosSignal()].sort((a, b) => b.id - a.id)
@@ -67,6 +90,8 @@ export class HallazgosService {
     }).length;
   });
 
+  readonly stats = computed(() => this.statsSignal());
+
   analyzeEvidence(formData: FormData): Observable<AnalyzeResponse> {
     return this.http
       .post<{ data: AnalyzeResponse }>(`${API_BASE}/api/hallazgos/analyze`, formData)
@@ -82,6 +107,31 @@ export class HallazgosService {
           })
         )
       );
+  }
+
+  loadHallazgos(limit = 50): Observable<Hallazgo[]> {
+    return this.http
+      .get<{ data: HallazgoListItemResponse[] }>(`${API_BASE}/api/hallazgos?limit=${limit}`)
+      .pipe(
+        map((resp) => (resp.data || []).map((row) => this.mapHallazgo(row))),
+        tap((items) => this.hallazgosSignal.set(items)),
+        catchError((err) => {
+          console.error('[Hallazgos][UI] loadHallazgos error', err);
+          return of(this.hallazgosSignal());
+        })
+      );
+  }
+
+  loadStats(): Observable<HallazgoStatsResponse | null> {
+    return this.http.get<{ data: HallazgoStatsResponse }>(`${API_BASE}/api/hallazgos/stats`).pipe(
+      map((resp) => resp.data),
+      tap((data) => this.statsSignal.set(data)),
+      catchError((err) => {
+        console.error('[Hallazgos][UI] loadStats error', err);
+        this.statsSignal.set(null);
+        return of(null);
+      })
+    );
   }
 
   createHallazgo(payload: CreateHallazgoPayload): Observable<Hallazgo> {
@@ -106,5 +156,21 @@ export class HallazgosService {
           return h;
         })
       );
+  }
+
+  private mapHallazgo(row: HallazgoListItemResponse): Hallazgo {
+    return {
+      id: Number(row.id),
+      estado: (row.estado as HallazgoEstado) || 'Abierto',
+      riesgo: row.riesgo,
+      titulo: row.titulo,
+      reportero: row.reporter || 'Anónimo',
+      fecha: row.fecha || new Date().toISOString().split('T')[0],
+      sector: row.sector || '',
+      descripcion_ai: row.descripcion_ai ?? null,
+      media_url: row.media_url ?? null,
+      media_type: row.media_type ?? null,
+      causeTreeId: row.cause_tree_id ?? null
+    };
   }
 }

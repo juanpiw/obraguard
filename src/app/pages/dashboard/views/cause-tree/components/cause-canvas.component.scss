@@ -17,6 +17,16 @@
   cursor: grabbing;
 }
 
+.tree-container:focus {
+  outline: 2px solid rgba(245, 158, 11, 0.75);
+  outline-offset: 2px;
+}
+
+.tree-content {
+  display: inline-flex;
+  align-items: center;
+}
+
 .bg-grid {
   background-image:
     linear-gradient(rgba(55, 65, 81, 0.2) 1px, transparent 1px),

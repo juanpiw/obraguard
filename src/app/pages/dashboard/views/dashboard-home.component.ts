@@ -36,29 +36,33 @@ export class DashboardHomeComponent {
   private readonly hallazgosService = inject(HallazgosService);
 
   protected readonly hallazgos = this.hallazgosService.hallazgos;
-  protected readonly abiertos = this.hallazgosService.abiertosCount;
-  protected readonly cerradosUltimos7 =
-    this.hallazgosService.cerradosUltimos7Dias;
+  protected readonly stats = this.hallazgosService.stats;
 
   protected readonly kpiCards = computed<DashboardKpi[]>(() => [
     {
       label: 'Hallazgos Abiertos',
-      value: this.abiertos().toString(),
-      helper: '+3 vs semana pasada',
+      value: (this.stats()?.openCount ?? 0).toString(),
+      helper:
+        this.stats()?.newVsPrevWeek === null
+          ? 'Sin histórico semanal'
+          : `${this.stats()!.newVsPrevWeek! >= 0 ? '+' : ''}${this.stats()!.newVsPrevWeek} vs semana pasada (nuevos)`,
       icon: 'alert',
       accent: 'red'
     },
     {
       label: 'Cerrados (Últ. 7d)',
-      value: this.cerradosUltimos7().toString(),
-      helper: 'Tiempo prom. cierre: 2.1 días',
+      value: (this.stats()?.closedLast7Days ?? 0).toString(),
+      helper:
+        this.stats()?.avgCloseDays == null
+          ? 'Tiempo prom. cierre: —'
+          : `Tiempo prom. cierre: ${this.stats()!.avgCloseDays!.toFixed(1)} días`,
       icon: 'check',
       accent: 'green'
     },
     {
       label: 'Charlas al día',
-      value: '95%',
-      helper: '2 de 40 cuadrillas pendientes',
+      value: '—',
+      helper: 'Sin endpoint de charlas aún',
       icon: 'document',
       accent: 'blue'
     }
@@ -83,5 +87,11 @@ export class DashboardHomeComponent {
       severity: 'orange'
     }
   ];
+
+  constructor() {
+    // cargar valores reales desde backend
+    this.hallazgosService.loadHallazgos().subscribe();
+    this.hallazgosService.loadStats().subscribe();
+  }
 }
 

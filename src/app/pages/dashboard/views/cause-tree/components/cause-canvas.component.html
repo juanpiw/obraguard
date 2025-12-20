@@ -5,15 +5,24 @@
   (mousemove)="onDrag($event)"
   (mouseup)="endDrag()"
   (mouseleave)="endDrag()"
+  (wheel)="onWheel($event)"
+  (touchstart)="onTouchStart($event)"
+  (touchmove)="onTouchMove($event)"
+  (touchend)="onTouchEnd($event)"
+  (keydown)="onKeyDown($event)"
+  tabindex="0"
+  aria-label="Lienzo del árbol de causas (zoom: Ctrl+scroll / pellizcar)"
 >
-  <ng-container *ngIf="tree; else emptyState">
-    <app-cause-node
-      [node]="tree"
-      [isRoot]="true"
-      (addNode)="addNode.emit($event)"
-      (editNode)="editNode.emit($event)"
-    ></app-cause-node>
-  </ng-container>
+  <div class="tree-content" [style.zoom]="zoom()">
+    <ng-container *ngIf="tree; else emptyState">
+      <app-cause-node
+        [node]="tree"
+        [isRoot]="true"
+        (addNode)="addNode.emit($event)"
+        (editNode)="editNode.emit($event)"
+      ></app-cause-node>
+    </ng-container>
+  </div>
 
   <ng-template #emptyState>
     <div class="empty-state">

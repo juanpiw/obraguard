@@ -112,6 +112,11 @@ export class CauseTreePageComponent {
   protected readonly modalInitialType = signal<CauseNodeType>('Condición');
   protected readonly modalInitialNotes = signal('');
   protected readonly modalInitialChildrenLogic = signal<CauseChildrenLogic>('AND');
+  protected readonly modalAiWorking = signal(false);
+  protected readonly modalAiPrefillRequestId = signal<number | null>(null);
+  protected readonly modalAiPrefillText = signal<string | null>(null);
+  protected readonly modalAiPrefillType = signal<CauseNodeType | null>(null);
+  protected readonly modalAiPrefillNotes = signal<string | null>(null);
 
   private readonly modalTargetNodeId = signal<number | string | null>(null);
   private readonly modalParentId = signal<number | string | null>(null);
@@ -230,6 +235,10 @@ export class CauseTreePageComponent {
     this.modalInitialType.set('Condición');
     this.modalInitialNotes.set('');
     this.modalInitialChildrenLogic.set('AND');
+    this.modalAiPrefillText.set(null);
+    this.modalAiPrefillType.set(null);
+    this.modalAiPrefillNotes.set(null);
+    this.modalAiPrefillRequestId.set(null);
     this.modalOpen.set(true);
   }
 
@@ -242,6 +251,10 @@ export class CauseTreePageComponent {
     this.modalInitialType.set(node.type);
     this.modalInitialNotes.set(node.notes || '');
     this.modalInitialChildrenLogic.set((node.childrenLogic || 'AND') as CauseChildrenLogic);
+    this.modalAiPrefillText.set(null);
+    this.modalAiPrefillType.set(null);
+    this.modalAiPrefillNotes.set(null);
+    this.modalAiPrefillRequestId.set(null);
     this.modalOpen.set(true);
   }
 
@@ -359,16 +372,57 @@ export class CauseTreePageComponent {
   }
 
   protected resolveAiFromModal(): void {
-    // Si no hay id, no sirve llamar IA (el endpoint requiere árbol existente).
     const id = this.causeTreeId();
     if (!id) {
       this.error.set('Primero guarda/abre un árbol existente (necesitamos ?id=) para resolver con IA.');
       return;
     }
 
-    // Cerramos el modal y generamos el árbol completo a partir del hallazgo asociado.
-    this.closeModal();
-    this.generateAiTree();
+    const current = this.tree();
+    if (!current) {
+      this.error.set('No hay árbol cargado para sugerir una causa.');
+      return;
+    }
+
+    // Contexto: en "add" sugerimos hijo para el padre; en "edit" sugerimos mejora del nodo actual.
+    const mode = this.modalMode();
+    const contextNodeId = mode === 'add' ? this.modalParentId() : this.modalTargetNodeId();
+    if (!contextNodeId) {
+      this.error.set('No se pudo determinar el nodo de contexto para la IA.');
+      return;
+    }
+    const contextNode = this.findNode(current, contextNodeId);
+    if (!contextNode) {
+      this.error.set('No se encontró el nodo de contexto para la IA.');
+      return;
+    }
+
+    this.error.set(null);
+    this.modalAiWorking.set(true);
+
+    this.service
+      .suggestNode(id, {
+        parentText: contextNode.text,
+        parentType: contextNode.type,
+        currentDraft: {
+          text: this.modalInitialText(),
+          type: this.modalInitialType(),
+          notes: this.modalInitialNotes() || null
+        }
+      })
+      .pipe(finalize(() => this.modalAiWorking.set(false)), takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (resp) => {
+          this.modalAiPrefillText.set(resp.text);
+          this.modalAiPrefillType.set(resp.type as CauseNodeType);
+          this.modalAiPrefillNotes.set(resp.notes || '');
+          this.modalAiPrefillRequestId.set(Date.now());
+        },
+        error: (err) => {
+          console.error('[CauseTree][UI] suggest node error', err);
+          this.error.set('No se pudo autocompletar con IA. Revisa conexión / API key y vuelve a intentar.');
+        }
+      });
   }
 
   protected resetTree(): void {

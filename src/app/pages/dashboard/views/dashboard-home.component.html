@@ -13,8 +13,8 @@
     <article class="kpi-card kpi-card--gradient">
       <div>
         <p>Nivel de Riesgo</p>
-        <strong>Bajo</strong>
-        <small>Tendencia estable</small>
+        <strong>{{ stats()?.riskLevel || '—' }}</strong>
+        <small>{{ stats()?.riskLevel ? 'Últimos 30 días' : 'Sin datos' }}</small>
       </div>
       <svg viewBox="0 0 24 24" stroke-width="1.5" fill="none" aria-hidden="true">
         <path
