@@ -422,6 +422,12 @@
   animation: ai-indeterminate 1s linear infinite;
 }
 
+.ai-progress__hint {
+  margin: 0.1rem 0 0.5rem;
+  color: #475569;
+  font-size: 0.9rem;
+}
+
 .ai-result textarea {
   width: 100%;
   min-height: 120px;
