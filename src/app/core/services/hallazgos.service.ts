@@ -159,6 +159,12 @@ export class HallazgosService {
       .pipe(map((resp) => resp.data));
   }
 
+  notifyHallazgoSms(id: number | string, to?: string): Observable<{ hallazgoId: number | string; to: string; sid: string; status: string }> {
+    return this.http
+      .post<{ data: any }>(`${API_BASE}/api/hallazgos/${id}/notify-sms`, { to: to ?? undefined })
+      .pipe(map((resp) => resp.data));
+  }
+
   createHallazgo(payload: CreateHallazgoPayload): Observable<Hallazgo> {
     return this.http
       .post<{ data: any }>(`${API_BASE}/api/hallazgos`, payload)

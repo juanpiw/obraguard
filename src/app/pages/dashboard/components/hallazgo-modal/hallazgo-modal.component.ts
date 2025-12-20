@@ -186,6 +186,20 @@ export class HallazgoModalComponent {
       const saved = await firstValueFrom(this.hallazgosService.createHallazgo(payload));
       console.log('[Hallazgos][UI] handleSubmit success', { mode, saved });
 
+      if (mode === 'telefono') {
+        try {
+          console.log('[Hallazgos][UI] notify SMS start', { hallazgoId: saved?.id });
+          const sms = await firstValueFrom(this.hallazgosService.notifyHallazgoSms(saved.id));
+          console.log('[Hallazgos][UI] notify SMS success', sms);
+          this.submitted.emit(`Hallazgo "${payload.titulo}" enviado por SMS al equipo.`);
+        } catch (smsErr: any) {
+          console.error('[Hallazgos][UI] notify SMS error', smsErr);
+          this.submitted.emit(
+            `Hallazgo "${payload.titulo}" guardado, pero no se pudo enviar SMS. Revisa configuración de Twilio en el backend.`
+          );
+        }
+      }
+
       if (mode === 'arbol') {
         const causeTreeId = saved?.causeTreeId ?? null;
         if (!causeTreeId) {
@@ -204,12 +218,8 @@ export class HallazgoModalComponent {
           });
           this.submitted.emit(`Hallazgo "${payload.titulo}" enviado con árbol de causa.`);
         }
-      } else {
-        this.submitted.emit(
-          mode === 'telefono'
-            ? `Hallazgo "${payload.titulo}" enviado para gestión telefónica.`
-            : `Hallazgo "${payload.titulo}" reportado con éxito.`
-        );
+      } else if (mode !== 'telefono') {
+        this.submitted.emit(`Hallazgo "${payload.titulo}" reportado con éxito.`);
       }
       this.form.reset({
         titulo: '',
