@@ -1,6 +1,9 @@
-import { Component, computed, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { HallazgosService } from '../../../core/services/hallazgos.service';
+import { Hallazgo } from '../../../core/models/hallazgo.model';
+import { Router } from '@angular/router';
 
 type FindingCategory = 'security' | 'legal' | 'thermal' | 'seismic';
 type FindingPriority = 'high' | 'medium' | 'low';
@@ -30,8 +33,15 @@ interface Finding {
   styleUrl: './hallazgos-page.component.scss'
 })
 export class HallazgosPageComponent {
+  private readonly hallazgosService = inject(HallazgosService);
+  private readonly router = inject(Router);
+
   searchQuery = signal('');
   currentFilter = signal<'all' | FindingCategory>('all');
+  isLoading = signal(false);
+  error = signal<string | null>(null);
+  exporting = signal(false);
+  exportMessage = signal<string | null>(null);
 
   categories = [
     { id: 'all' as const, label: 'Todo', dotClass: 'bg-slate-400' },
@@ -41,64 +51,7 @@ export class HallazgosPageComponent {
     { id: 'thermal' as const, label: 'Térmico (Res 1802)', dotClass: 'bg-cyan-500' },
   ];
 
-  findings = signal<Finding[]>([
-    {
-      id: '204',
-      title: 'Ausencia de Barandas en Borde de Losa',
-      location: 'Torre A · Piso 12',
-      category: 'security',
-      priority: 'high',
-      status: 'open',
-      detectedBy: 'IA',
-      timestamp: new Date(),
-      regulation: 'Art. 12 DS 44',
-      assignedTo: 'Empresa Constructora',
-      comments: 3,
-      sentTo: ['Ricardo (Jefe Obra)', 'Carolina (Prevención)', 'Grupo WhatsApp Obra']
-    },
-    {
-      id: '203',
-      title: 'Cartel de Permiso Municipal No Visible',
-      location: 'Acceso Principal',
-      category: 'legal',
-      priority: 'medium',
-      status: 'open',
-      detectedBy: 'Manual',
-      timestamp: new Date(Date.now() - 3600000 * 2),
-      regulation: 'Ley 21.718 Transparencia',
-      assignedTo: 'Administración',
-      comments: 1,
-      sentTo: ['Francisca (Gerencia)', 'Administrador de Contrato']
-    },
-    {
-      id: '202',
-      title: 'Equipos de Clima sin Anclaje Sísmico',
-      location: 'Cubierta',
-      category: 'seismic',
-      priority: 'high',
-      status: 'review',
-      detectedBy: 'IA',
-      timestamp: new Date(Date.now() - 3600000 * 24),
-      regulation: 'Cap. 5 NCh2369',
-      assignedTo: 'Subcontrato ClimaPro',
-      comments: 5,
-      sentTo: ['Subcontrato ClimaPro', 'ITO Estructural']
-    },
-    {
-      id: '201',
-      title: 'Falta Barrera de Vapor en Muro Perimetral',
-      location: 'Fachada Sur',
-      category: 'thermal',
-      priority: 'medium',
-      status: 'closed',
-      detectedBy: 'IA',
-      timestamp: new Date(Date.now() - 3600000 * 48),
-      regulation: 'Res. 1802',
-      assignedTo: 'Jefe de Terreno',
-      comments: 0,
-      sentTo: ['Jefe de Terreno', 'Arq. Especificador']
-    }
-  ]);
+  findings = signal<Finding[]>([]);
 
   criticalCount = computed(() => this.findings().filter(f => f.priority === 'high' && f.status === 'open').length);
   legalCount = computed(() => this.findings().filter(f => f.category === 'legal' && f.status !== 'closed').length);
@@ -118,9 +71,16 @@ export class HallazgosPageComponent {
   });
 
   updateStatus(id: string, newStatus: FindingStatus) {
-    this.findings.update(items =>
-      items.map(i => i.id === id ? { ...i, status: newStatus } : i)
-    );
+    this.findings.update(items => items.map(i => i.id === id ? { ...i, status: newStatus } : i));
+    this.hallazgosService.updateEstado(id, this.mapStatusToEstado(newStatus)).subscribe({
+      next: () => {
+        this.fetchFindings();
+      },
+      error: (err) => {
+        console.error('[Hallazgos][UI] update estado error', err);
+        this.error.set('No se pudo actualizar el estado.');
+      }
+    });
   }
 
   createFinding() {
@@ -190,5 +150,122 @@ export class HallazgosPageComponent {
       thermal: 'Térmico'
     };
     return map[c];
+  }
+
+  constructor() {
+    effect(() => {
+      // refetch on filter/search change
+      this.currentFilter();
+      this.searchQuery();
+      this.fetchFindings();
+    });
+  }
+
+  exportPdf(): void {
+    const first = this.findings()[0];
+    if (!first) {
+      this.exportMessage.set('No hay hallazgos para exportar.');
+      return;
+    }
+    this.exporting.set(true);
+    this.exportMessage.set(null);
+    this.hallazgosService.getHallazgoPdf(first.id).subscribe({
+      next: (resp) => {
+        this.exporting.set(false);
+        const url = resp?.pdfUrl;
+        if (url) {
+          window.open(url, '_blank');
+        } else {
+          this.exportMessage.set(resp?.message || 'PDF generado pendiente.');
+        }
+      },
+      error: (err) => {
+        console.error('[Hallazgos][UI] export PDF error', err);
+        this.exportMessage.set('No se pudo exportar el PDF.');
+        this.exporting.set(false);
+      }
+    });
+  }
+
+  createFinding() {
+    // Redirige al dashboard donde está el modal de hallazgo
+    this.router.navigate(['/app/dashboard'], { queryParams: { openHallazgo: '1' } });
+  }
+
+  private fetchFindings(): void {
+    this.isLoading.set(true);
+    this.error.set(null);
+    const tipo = this.mapFilterToTipo(this.currentFilter());
+    const q = this.searchQuery().trim();
+    this.hallazgosService
+      .loadHallazgos({ limit: 50, page: 1, tipo, q })
+      .subscribe({
+        next: (rows) => {
+          this.findings.set(rows.map((h) => this.mapHallazgoToFinding(h)));
+          this.isLoading.set(false);
+        },
+        error: (err) => {
+          console.error('[Hallazgos][UI] load error', err);
+          this.error.set('No se pudieron cargar los hallazgos.');
+          this.isLoading.set(false);
+        }
+      });
+  }
+
+  private mapHallazgoToFinding(h: Hallazgo): Finding {
+    const status = this.mapEstadoToStatus(h.estado);
+    const category = this.detectCategory(h);
+    const priority = this.mapRiesgoToPriority(h.riesgo);
+    return {
+      id: String(h.id),
+      title: h.titulo || 'Hallazgo',
+      location: h.sector || 'Obra',
+      category,
+      priority,
+      status,
+      detectedBy: 'IA',
+      timestamp: h.fecha ? new Date(h.fecha) : new Date(),
+      regulation: h.descripcion_ai || undefined,
+      assignedTo: h.reportero || 'Equipo',
+      comments: 0,
+      sentTo: []
+    };
+  }
+
+  private mapEstadoToStatus(estado?: any): FindingStatus {
+    const val = String(estado || '').toLowerCase();
+    if (val.includes('cerr')) return 'closed';
+    if (val.includes('revis') || val.includes('proc') || val.includes('conf')) return 'review';
+    return 'open';
+  }
+
+  private mapStatusToEstado(status: FindingStatus): string {
+    if (status === 'closed') return 'Cerrado';
+    if (status === 'review') return 'En Proceso';
+    return 'Abierto';
+  }
+
+  private mapRiesgoToPriority(r?: any): FindingPriority {
+    const v = String(r || '').toLowerCase();
+    if (v.includes('alto')) return 'high';
+    if (v.includes('bajo')) return 'low';
+    return 'medium';
+  }
+
+  private detectCategory(h: Hallazgo): FindingCategory {
+    const text = `${h.titulo || ''} ${h.descripcion_ai || ''}`.toLowerCase();
+    if (text.includes('sísm') || text.includes('sism')) return 'seismic';
+    if (text.includes('térm') || text.includes('term') || text.includes('vapor')) return 'thermal';
+    if (text.includes('legal') || text.includes('ley') || text.includes('permiso')) return 'legal';
+    return 'security';
+  }
+
+  private mapFilterToTipo(filter: 'all' | FindingCategory): string | undefined {
+    if (filter === 'all') return undefined;
+    if (filter === 'security') return 'seguridad';
+    if (filter === 'legal') return 'legal';
+    if (filter === 'seismic') return 'sismico';
+    if (filter === 'thermal') return 'termico';
+    return undefined;
   }
 }

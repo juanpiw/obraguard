@@ -177,9 +177,16 @@ export class HallazgosService {
       );
   }
 
-  loadHallazgos(limit = 50): Observable<Hallazgo[]> {
+  loadHallazgos(params?: { limit?: number; page?: number; estado?: string; tipo?: string; q?: string }): Observable<Hallazgo[]> {
+    const query: string[] = [];
+    if (params?.limit) query.push(`limit=${params.limit}`);
+    if (params?.page) query.push(`page=${params.page}`);
+    if (params?.estado) query.push(`estado=${encodeURIComponent(params.estado)}`);
+    if (params?.tipo) query.push(`tipo=${encodeURIComponent(params.tipo)}`);
+    if (params?.q) query.push(`q=${encodeURIComponent(params.q)}`);
+    const qs = query.length ? `?${query.join('&')}` : '';
     return this.http
-      .get<{ data: HallazgoListItemResponse[] }>(`${API_BASE}/api/hallazgos?limit=${limit}`)
+      .get<{ data: HallazgoListItemResponse[] }>(`${API_BASE}/api/hallazgos${qs}`)
       .pipe(
         map((resp) => (resp.data || []).map((row) => this.mapHallazgo(row))),
         tap((items) => this.hallazgosSignal.set(items)),
@@ -211,6 +218,18 @@ export class HallazgosService {
   notifyHallazgoSms(id: number | string, to?: string): Observable<{ hallazgoId: number | string; to: string; sid: string; status: string }> {
     return this.http
       .post<{ data: any }>(`${API_BASE}/api/hallazgos/${id}/notify-sms`, { to: to ?? undefined })
+      .pipe(map((resp) => resp.data));
+  }
+
+  updateEstado(id: number | string, estado: string): Observable<{ id: number | string; estado: string }> {
+    return this.http
+      .patch<{ data: { id: number | string; estado: string } }>(`${API_BASE}/api/hallazgos/${id}/estado`, { estado })
+      .pipe(map((resp) => resp.data));
+  }
+
+  getHallazgoPdf(id: number | string): Observable<{ pdfUrl: string | null; message?: string }> {
+    return this.http
+      .get<{ data: { pdfUrl: string | null; message?: string } }>(`${API_BASE}/api/hallazgos/${id}/pdf`)
       .pipe(map((resp) => resp.data));
   }
 

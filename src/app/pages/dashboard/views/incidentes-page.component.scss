@@ -13,21 +13,21 @@
   display: grid;
   gap: 1.25rem;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  background: linear-gradient(135deg, #0f172a, #1e293b);
-  color: #e2e8f0;
+  background: #f1f5f9;
+  color: #0f172a;
   border-radius: 1.5rem;
   padding: 1.5rem;
-  box-shadow: 0 15px 45px rgba(15, 23, 42, 0.25);
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.08);
 }
 
 .control-hero__content h2 {
   margin: 0.35rem 0;
-  color: #fff;
+  color: #0f172a;
   font-size: 1.8rem;
 }
 
 .control-hero__content .muted {
-  color: #cbd5e1;
+  color: #475569;
   margin: 0.35rem 0 0;
 }
 
@@ -39,8 +39,8 @@
 }
 
 .control-hero__status {
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
   border-radius: 1.1rem;
   padding: 1rem;
   display: flex;
@@ -51,7 +51,7 @@
 .control-hero__status strong {
   display: block;
   font-size: 1.4rem;
-  color: #fff;
+  color: #0f172a;
 }
 
 .status-dot {
@@ -127,7 +127,7 @@
 
 .progress {
   width: 100%;
-  background: rgba(255, 255, 255, 0.15);
+  background: #e2e8f0;
   border-radius: 999px;
   height: 0.6rem;
   margin-top: 0.75rem;
@@ -137,7 +137,7 @@
 .progress span {
   display: block;
   height: 100%;
-  background: #fff;
+  background: #0f172a;
   border-radius: inherit;
 }
 
@@ -152,9 +152,9 @@
 }
 
 .pill--light {
-  background: rgba(255, 255, 255, 0.15);
-  color: #fff;
-  border-color: rgba(255, 255, 255, 0.25);
+  background: #e2e8f0;
+  color: #0f172a;
+  border-color: #cbd5e1;
 }
 
 .pill--success {
@@ -285,12 +285,12 @@
 
 .btn--ghost {
   background: transparent;
-  border-color: rgba(255, 255, 255, 0.2);
-  color: inherit;
+  border-color: #cbd5e1;
+  color: #0f172a;
 }
 
 .btn--ghost:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: #e2e8f0;
 }
 
 .btn--link {
