@@ -97,7 +97,8 @@ export class HallazgosService {
             sector: payload.sector || '',
             descripcion_ai: payload.descripcion_ai ?? null,
             media_url: resp.data?.mediaUrl ?? null,
-            media_type: resp.data?.mediaType ?? null
+            media_type: resp.data?.mediaType ?? null,
+            causeTreeId: resp.data?.causeTreeId ?? null
           };
           this.hallazgosSignal.update((current) => [...current, h]);
           return h;

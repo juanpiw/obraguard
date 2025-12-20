@@ -12,6 +12,7 @@ export interface Hallazgo {
   descripcion_ai?: string | null;
   media_url?: string | null;
   media_type?: string | null;
+  causeTreeId?: number | string | null;
 }
 
 

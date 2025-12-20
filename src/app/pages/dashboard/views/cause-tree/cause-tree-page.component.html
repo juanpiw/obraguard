@@ -49,8 +49,8 @@
     <div class="canvas-wrapper">
       <app-cause-canvas
         [tree]="tree()"
-        (addNode)="openAdd($event)"
-        (editNode)="openEdit($event)"
+        (addNode)="openAdd()"
+        (editNode)="openEdit()"
       ></app-cause-canvas>
     </div>
   </div>
@@ -62,7 +62,7 @@
     [initialText]="''"
     [initialType]="'Condición'"
     (cancel)="closeModal()"
-    (save)="saveNode($event)"
+    (save)="saveNode()"
   ></app-node-modal>
 
   <app-ai-toast
