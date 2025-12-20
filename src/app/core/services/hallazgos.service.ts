@@ -60,6 +60,13 @@ export interface AnalyzeResponse {
     controles?: string[];
     medidaControl?: string | null;
     causas_sugeridas?: { descripcion?: string; relacion_logica?: string; pregunta_validacion?: string }[];
+    actividad?: string | null;
+    puesto?: string | null;
+    lugar?: string | null;
+    trabajadores?: string | null;
+    factor?: string | null;
+    responsable?: string | null;
+    plazo?: string | null;
   };
 }
 

@@ -19,10 +19,11 @@
           <div class="tabs">
             <button
               type="button"
+              class="tabs__btn--disabled"
               [class.tabs__btn--active]="isActiveTab('manual')"
-              (click)="setTab('manual')"
+              disabled
             >
-              Ingreso manual
+              Ingreso manual (deshabilitado)
             </button>
             <button
               type="button"
@@ -108,6 +109,50 @@
             @if (form.get('titulo')?.touched && form.get('titulo')?.invalid) {
               <small class="field-error">Ingresa un título (mínimo 6 caracteres).</small>
             }
+          </div>
+
+          <div class="form-grid">
+            <div class="form-field">
+              <label>Actividad</label>
+              <input type="text" formControlName="actividad" placeholder="Ej: Montaje de andamio" />
+            </div>
+            <div class="form-field">
+              <label>Puesto / Tarea</label>
+              <input type="text" formControlName="puesto" placeholder="Ej: Andamiero / Operador" />
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-field">
+              <label>Lugar específico</label>
+              <input type="text" formControlName="lugar" placeholder="Ej: Torre B, piso 2, zona húmeda" />
+            </div>
+            <div class="form-field">
+              <label>Nº de trabajadores</label>
+              <input type="text" formControlName="trabajadores" placeholder="Ej: 3" />
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-field">
+              <label>Factor de riesgo / Peligro</label>
+              <input type="text" formControlName="factor" placeholder="Ej: Caída de altura / eléctrica" />
+            </div>
+            <div class="form-field">
+              <label>Medida de control</label>
+              <input type="text" formControlName="medidaControl" placeholder="Ej: Instalar barandas y líneas de vida" />
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-field">
+              <label>Responsable</label>
+              <input type="text" formControlName="responsable" placeholder="Ej: Supervisor turno" />
+            </div>
+            <div class="form-field">
+              <label>Plazo</label>
+              <input type="text" formControlName="plazo" placeholder="Ej: 2025-12-31" />
+            </div>
           </div>
 
           @if (isActiveTab('manual')) {

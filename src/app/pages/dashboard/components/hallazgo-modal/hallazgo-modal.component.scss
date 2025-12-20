@@ -94,6 +94,14 @@
       color: #fff;
       box-shadow: 0 8px 18px rgba(29, 78, 216, 0.35);
     }
+
+    &.tabs__btn--disabled {
+      cursor: not-allowed;
+      opacity: 0.5;
+      background: #111827;
+      color: #6b7280;
+      box-shadow: none;
+    }
   }
 }
 

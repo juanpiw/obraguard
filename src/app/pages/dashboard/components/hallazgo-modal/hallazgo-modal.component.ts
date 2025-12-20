@@ -48,7 +48,7 @@ export class HallazgoModalComponent {
   protected readonly showImprovements = signal(false);
   protected readonly submitting = signal(false);
   protected readonly captureMode = signal<CaptureMode>('upload');
-  protected readonly activeTab = signal<FormTab>('manual');
+  protected readonly activeTab = signal<FormTab>('auto');
   protected readonly mediaPreview = signal<string | null>(null);
   protected readonly mediaName = signal<string | null>(null);
   protected readonly mediaIsImage = signal(true);
@@ -64,6 +64,14 @@ export class HallazgoModalComponent {
     riesgo: ['Medio' as HallazgoRiesgo, Validators.required],
     // Sector puede ser opcional (pero si se completa debe tener minLength)
     sector: ['', [Validators.minLength(3)]],
+    actividad: [''],
+    puesto: [''],
+    lugar: [''],
+    trabajadores: [''],
+    factor: [''],
+    medidaControl: [''],
+    responsable: [''],
+    plazo: [''],
     anonimo: [false],
     reportero: [REPORTERO_DEFAULT]
   });
@@ -139,6 +147,15 @@ export class HallazgoModalComponent {
       this.aiCodigoMiper.set(aiSuggestion.codigo_miper ?? (resp as any)?.analisis_hecho?.codigo_miper ?? null);
       this.aiGema.set(aiSuggestion.clasificacion_gema ?? (resp as any)?.analisis_hecho?.clasificacion_gema ?? null);
       this.aiAlertaGenero.set(aiSuggestion.alerta_genero ?? (resp as any)?.analisis_hecho?.alerta_genero ?? null);
+      // Prefill campos adicionales si vienen en la sugerencia
+      if (aiSuggestion?.actividad) this.form.get('actividad')?.setValue(aiSuggestion.actividad);
+      if (aiSuggestion?.puesto) this.form.get('puesto')?.setValue(aiSuggestion.puesto);
+      if (aiSuggestion?.lugar) this.form.get('lugar')?.setValue(aiSuggestion.lugar);
+      if (aiSuggestion?.trabajadores) this.form.get('trabajadores')?.setValue(aiSuggestion.trabajadores);
+      if (aiSuggestion?.factor) this.form.get('factor')?.setValue(aiSuggestion.factor);
+      if (aiSuggestion?.medidaControl) this.form.get('medidaControl')?.setValue(aiSuggestion.medidaControl);
+      if (aiSuggestion?.responsable) this.form.get('responsable')?.setValue(aiSuggestion.responsable);
+      if (aiSuggestion?.plazo) this.form.get('plazo')?.setValue(aiSuggestion.plazo);
       this.showImprovements.set(false);
       this.analyzedMediaId = resp.mediaId ?? null;
       this.analyzedMediaUrl = resp.mediaUrl ?? null;
@@ -203,6 +220,14 @@ export class HallazgoModalComponent {
         titulo: this.form.get('titulo')?.value ?? '',
         riesgo: (this.form.get('riesgo')?.value ?? 'Medio') as HallazgoRiesgo,
         sector: this.form.get('sector')?.value ?? '',
+        actividad: this.form.get('actividad')?.value ?? '',
+        puesto: this.form.get('puesto')?.value ?? '',
+        lugar: this.form.get('lugar')?.value ?? '',
+        trabajadores: this.form.get('trabajadores')?.value ?? '',
+        factor: this.form.get('factor')?.value ?? '',
+        medidaControl: this.form.get('medidaControl')?.value ?? '',
+        responsable: this.form.get('responsable')?.value ?? '',
+        plazo: this.form.get('plazo')?.value ?? '',
         reporter,
         anonimo: this.anonimo,
         descripcion_ai: this.analyzedDescripcion ?? undefined,
@@ -290,6 +315,9 @@ export class HallazgoModalComponent {
   }
 
   protected setTab(tab: FormTab): void {
+    if (tab === 'manual') {
+      return; // manual deshabilitado
+    }
     this.activeTab.set(tab);
   }
 
