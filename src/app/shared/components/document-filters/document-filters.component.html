@@ -1,0 +1,29 @@
+<div class="filters">
+  <div class="filters__tabs">
+    <button
+      *ngFor="let cat of categories"
+      (click)="onCategoryClick(cat.id)"
+      [class.filters__tab--active]="currentCategory === cat.id"
+      class="filters__tab"
+    >
+      <span class="filters__tab-icon">{{ cat.icon }}</span>
+      {{ cat.label }}
+    </button>
+  </div>
+
+  <div class="filters__search">
+    <span class="filters__search-icon">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8"></circle>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+      </svg>
+    </span>
+    <input
+      type="text"
+      [value]="searchQuery"
+      (input)="onSearchChange(($any($event.target)?.value) ?? '')"
+      placeholder="Buscar archivo..."
+    />
+  </div>
+</div>
+

@@ -1,0 +1,39 @@
+<div
+  class="upload-zone"
+  [class.upload-zone--dragging]="isDragging"
+  (click)="triggerSelect()"
+  (dragover)="onDragOver($event)"
+  (dragleave)="onDragLeave($event)"
+  (drop)="onDrop($event)"
+>
+  <input #fileInput type="file" class="upload-zone__input" (change)="onFileChange($event)" multiple>
+
+  <ng-container *ngIf="!isUploading; else uploadProgress">
+    <div class="upload-zone__icon">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+        <polyline points="17 8 12 3 7 8"></polyline>
+        <line x1="12" y1="3" x2="12" y2="15"></line>
+      </svg>
+    </div>
+    <h3>Arrastra documentos aquí o haz clic para subir</h3>
+    <p>Soporta PDF, DWG, JPG. <span>La IA detectará automáticamente fechas de vencimiento y categorías.</span></p>
+  </ng-container>
+
+  <ng-template #uploadProgress>
+    <div class="upload-progress">
+      <div class="upload-progress__header">
+        <span>{{ uploadStatusText }}</span>
+        <span>{{ uploadPercent }}%</span>
+      </div>
+      <div class="upload-progress__bar">
+        <div class="upload-progress__bar-inner" [style.width.%]="uploadPercent">
+          <div class="upload-progress__shimmer"></div>
+        </div>
+      </div>
+      <p>Leyendo metadatos y validando normativa...</p>
+    </div>
+  </ng-template>
+</div>
+

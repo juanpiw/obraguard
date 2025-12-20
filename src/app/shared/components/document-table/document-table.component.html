@@ -1,0 +1,77 @@
+<div class="document-table">
+  <table>
+    <thead>
+      <tr>
+        <th>Nombre del Documento</th>
+        <th>Categoría</th>
+        <th>Fecha Carga</th>
+        <th>Estado / Vencimiento</th>
+        <th class="text-right">Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let doc of documents" class="document-row">
+        <td>
+          <div class="doc-name">
+            <div [class]="getFileIconColor(doc.type)">
+              <span>{{ doc.type }}</span>
+            </div>
+            <div>
+              <div class="doc-name__title">{{ doc.name }}</div>
+              <div class="doc-name__meta">{{ doc.size }} • Subido por {{ doc.uploadedBy }}</div>
+            </div>
+          </div>
+        </td>
+        <td>
+          <span class="category-chip">
+            {{ getCategoryLabel(doc.category) }}
+          </span>
+        </td>
+        <td class="text-sm">
+          {{ doc.uploadDate | date:'dd MMM yyyy' }}
+        </td>
+        <td>
+          <ng-container *ngIf="doc.status !== 'processing'; else processing">
+            <div [class]="getStatusClass(doc.status)">
+              <span [class]="getStatusDot(doc.status)"></span>
+              {{ statusLabel(doc.status) }}
+              <span *ngIf="doc.expiryDate" class="status-chip__date">
+                ({{ doc.expiryDate | date:'MM/yy' }})
+              </span>
+            </div>
+          </ng-container>
+          <ng-template #processing>
+            <div class="processing">
+              <svg viewBox="0 0 24 24">
+                <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+              </svg>
+              PROCESANDO IA...
+            </div>
+          </ng-template>
+        </td>
+        <td class="text-right">
+          <div class="row-actions">
+            <button type="button" title="Descargar">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+            </button>
+            <button type="button" title="Eliminar" class="danger" (click)="onDelete(doc.id)">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+              </svg>
+            </button>
+          </div>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div *ngIf="documents.length === 0" class="empty-state">
+    <p>No se encontraron documentos en esta categoría.</p>
+  </div>
+</div>
+

@@ -1,9 +1,38 @@
-<section class="placeholder-page">
-  <h2>Gestión Documental</h2>
-  <p>Repositorio de permisos, registros diarios y firmas digitales centralizados.</p>
+<section class="documents-page">
+  <div class="documents-page__header">
+    <app-document-header
+      title="Gestión Documental"
+      subtitle="Repositorio centralizado con validación de vigencia (IA).">
+    </app-document-header>
+
+    <app-document-kpi-cards
+      [totalDocs]="totalDocs()"
+      [expiredDocs]="expiredDocs()">
+    </app-document-kpi-cards>
+  </div>
+
+  <app-document-upload-zone
+    [isDragging]="isDragging()"
+    [isUploading]="isUploading()"
+    [uploadPercent]="uploadPercent()"
+    [uploadStatusText]="uploadStatusText()"
+    (draggingChange)="handleDraggingChange($event)"
+    (fileSelected)="handleFile($event)"
+    (fileDropped)="handleFile($event)">
+  </app-document-upload-zone>
+
+  <app-document-filters
+    class="documents-page__filters"
+    [categories]="categories"
+    [currentCategory]="currentCategory()"
+    [searchQuery]="searchQuery()"
+    (categoryChange)="currentCategory.set($event)"
+    (searchChange)="searchQuery.set($event)">
+  </app-document-filters>
+
+  <app-document-table
+    [documents]="filteredDocs()"
+    [categories]="categories"
+    (deleteDoc)="handleDelete($event)">
+  </app-document-table>
 </section>
-
-
-
-
-

@@ -1,9 +1,204 @@
-<section class="placeholder-page">
-  <h2>Vista de Todos los Hallazgos</h2>
-  <p>Aquí podrás gestionar filtros avanzados, exportar reportes y revisar el historial completo.</p>
+<section class="findings-page">
+  <!-- Header -->
+  <div class="header">
+    <div>
+      <h1>Central de Hallazgos</h1>
+      <p>Gestión de incidentes técnicos y normativos (DS 44, NCh, Legal).</p>
+    </div>
+    <div class="header__actions">
+      <button type="button" class="btn btn-ghost">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="7 10 12 15 17 10"></polyline>
+          <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+        Exportar PDF
+      </button>
+      <button type="button" class="btn btn-primary" (click)="createFinding()">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+        Nuevo Hallazgo
+      </button>
+    </div>
+  </div>
+
+  <!-- KPIs -->
+  <div class="kpi-grid">
+    <div class="kpi kpi--red">
+      <span>Riesgo Crítico</span>
+      <div>
+        <strong>{{ criticalCount() }}</strong>
+        <small>Requieren cierre hoy</small>
+      </div>
+    </div>
+    <div class="kpi kpi--amber">
+      <span>Legal (Multas)</span>
+      <div>
+        <strong>{{ legalCount() }}</strong>
+        <small>Ley 21.718</small>
+      </div>
+    </div>
+    <div class="kpi">
+      <span>Detectados por IA</span>
+      <div>
+        <strong>85%</strong>
+        <small class="text-success">↑ 12% Eficiencia</small>
+      </div>
+    </div>
+    <div class="kpi">
+      <span>Tasa de Cierre</span>
+      <div>
+        <strong class="text-success">92%</strong>
+        <small>Esta semana</small>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters">
+    <div class="filters__tabs">
+      <button
+        *ngFor="let cat of categories"
+        type="button"
+        (click)="currentFilter.set(cat.id)"
+        [class.active]="currentFilter() === cat.id"
+        class="filters__tab"
+      >
+        <span [class]="cat.dotClass" class="dot"></span>
+        {{ cat.label }}
+      </button>
+    </div>
+
+    <div class="filters__search">
+      <span class="icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+      </span>
+      <input
+        type="text"
+        [ngModel]="searchQuery()"
+        (ngModelChange)="searchQuery.set($event)"
+        placeholder="Buscar por norma, ubicación..."
+      >
+    </div>
+  </div>
+
+  <!-- Findings list -->
+  <div class="cards">
+    <article *ngFor="let item of filteredFindings()" class="card">
+      <div class="card__stripe" [class]="getPriorityColor(item.priority, 'bg')"></div>
+
+      <div class="card__meta">
+        <div class="badge" [class]="getCategoryBadge(item.category)">
+          {{ getCategoryLabel(item.category) }}
+        </div>
+        <div class="location">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+            <circle cx="12" cy="10" r="3"></circle>
+          </svg>
+          {{ item.location }}
+        </div>
+        <span class="timestamp">{{ item.timestamp | date:'dd MMM HH:mm' }}</span>
+      </div>
+
+      <div class="card__body">
+        <h3>{{ item.title }}</h3>
+        <p>
+          <span *ngIf="item.regulation" class="regulation">{{ item.regulation }}</span>
+          Reportado por {{ item.detectedBy }}. Asignado a: <strong>{{ item.assignedTo }}</strong>.
+        </p>
+      </div>
+
+      <div class="card__footer">
+        <div class="actions">
+          <button type="button" class="link">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+            </svg>
+            {{ item.comments }} Comentarios
+          </button>
+          <button type="button" class="link">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle>
+            </svg>
+            Ver Evidencia
+          </button>
+          <button type="button" class="link" (click)="openRecipients(item)">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="22" y1="2" x2="11" y2="13"></line>
+              <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+            </svg>
+            Enviado
+          </button>
+        </div>
+
+        <div class="status">
+          <span>Estado:</span>
+          <select
+            [ngModel]="item.status"
+            (ngModelChange)="updateStatus(item.id, $event)"
+            [class.status--open]="item.status === 'open'"
+            [class.status--review]="item.status === 'review'"
+            [class.status--closed]="item.status === 'closed'"
+          >
+            <option value="open">ABIERTO</option>
+            <option value="review">EN REVISIÓN</option>
+            <option value="closed">CERRADO</option>
+          </select>
+        </div>
+      </div>
+    </article>
+
+    <div *ngIf="filteredFindings().length === 0" class="empty">
+      <div class="empty__icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+      </div>
+      <p>No hay hallazgos con este filtro.</p>
+      <button type="button" class="link" (click)="currentFilter.set('all')">Limpiar filtros</button>
+    </div>
+  </div>
+
+  <!-- Modal Enviados -->
+  <div class="modal-backdrop" *ngIf="modalOpen()">
+    <div class="modal">
+      <div class="modal__header">
+        <div>
+          <h3>Reporte enviado</h3>
+          <p *ngIf="modalItem()">{{ modalItem()?.title }}</p>
+        </div>
+        <button type="button" class="modal__close" (click)="closeRecipients()">×</button>
+      </div>
+
+      <div class="modal__body" *ngIf="modalItem() as item">
+        <div class="sent-list">
+          <h4>Destinatarios</h4>
+          <ul>
+            <li *ngFor="let person of item.sentTo ?? []">• {{ person }}</li>
+            <li *ngIf="!item.sentTo || item.sentTo.length === 0" class="muted">Pendiente de envío</li>
+          </ul>
+        </div>
+
+        <div class="resend">
+          <label>Reenviar a correo o teléfono</label>
+          <input
+            type="text"
+            [ngModel]="resendTarget()"
+            (ngModelChange)="resendTarget.set($event)"
+            placeholder="ej: persona@correo.com o +569..."
+          >
+          <button type="button" class="btn btn-primary w-full" (click)="resend()">Reenviar</button>
+          <p *ngIf="resendStatus()" [class.ok]="resendStatus()?.ok" [class.error]="!resendStatus()?.ok">
+            {{ resendStatus()?.message }}
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
 </section>
-
-
-
-
-

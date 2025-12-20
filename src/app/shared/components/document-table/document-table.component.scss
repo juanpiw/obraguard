@@ -1,0 +1,199 @@
+.document-table {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 1rem;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+  overflow: hidden;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+thead {
+  background: #f8fafc;
+  color: #64748b;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+
+  th {
+    padding: 1rem;
+    border-bottom: 1px solid #e2e8f0;
+    font-weight: 800;
+  }
+}
+
+tbody tr {
+  transition: background 0.2s ease;
+}
+
+.document-row:hover {
+  background: #f8fafc;
+}
+
+td {
+  padding: 1rem;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: middle;
+}
+
+.doc-name {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+
+  &__title {
+    font-weight: 700;
+    color: #0f172a;
+  }
+
+  &__meta {
+    color: #94a3b8;
+    font-size: 0.85rem;
+  }
+}
+
+.file-icon {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.8rem;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  font-weight: 800;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+}
+
+.file-icon--pdf { background: #ef4444; }
+.file-icon--xls { background: #10b981; }
+.file-icon--doc { background: #2563eb; }
+.file-icon--cad { background: #0f172a; }
+.file-icon--default { background: #94a3b8; }
+
+.category-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.65rem;
+  border-radius: 0.6rem;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  color: #475569;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.status-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.45rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid #e2e8f0;
+  font-weight: 800;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+}
+
+.status-chip--valid {
+  background: #ecfdf3;
+  border-color: #bbf7d0;
+  color: #15803d;
+}
+
+.status-chip--expiring {
+  background: #fffbeb;
+  border-color: #fef08a;
+  color: #b45309;
+}
+
+.status-chip--expired {
+  background: #fef2f2;
+  border-color: #fecdd3;
+  color: #dc2626;
+}
+
+.status-chip__dot {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 50%;
+  background: #94a3b8;
+}
+
+.status-chip__dot--valid { background: #22c55e; }
+.status-chip__dot--expiring { background: #f59e0b; }
+.status-chip__dot--expired { background: #ef4444; }
+
+.status-chip__date {
+  font-weight: 600;
+  opacity: 0.75;
+}
+
+.processing {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #2563eb;
+  font-weight: 800;
+  font-size: 0.8rem;
+
+  svg {
+    width: 1rem;
+    height: 1rem;
+    animation: spin 1s linear infinite;
+  }
+}
+
+.row-actions {
+  display: inline-flex;
+  gap: 0.35rem;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+
+  button {
+    border: none;
+    background: transparent;
+    padding: 0.45rem;
+    border-radius: 0.65rem;
+    color: #94a3b8;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+      color: #2563eb;
+      background: #e0f2fe;
+    }
+  }
+
+  .danger:hover {
+    color: #dc2626;
+    background: #fee2e2;
+  }
+
+  svg {
+    width: 1rem;
+    height: 1rem;
+  }
+}
+
+.document-row:hover .row-actions {
+  opacity: 1;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: #94a3b8;
+}
+
+.text-right { text-align: right; }
+.text-sm { font-size: 0.95rem; color: #475569; }
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
