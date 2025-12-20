@@ -1,0 +1,87 @@
+<section class="facts-card">
+  <header class="facts-card__header">
+    <div>
+      <h3>Lista de Hechos (editable)</h3>
+      <p class="muted">
+        Escribe hechos cortos y observables. Puedes marcarlos como “Pendiente” si requieren más investigación.
+      </p>
+    </div>
+
+    <div class="facts-card__actions">
+      <button type="button" class="ghost" (click)="resetFromTree()" [disabled]="disabled">
+        Cargar desde árbol
+      </button>
+      <button type="button" class="ghost" (click)="addFact()" [disabled]="disabled">
+        + Hecho
+      </button>
+      <button type="button" class="primary" (click)="handleGenerate()" [disabled]="disabled">
+        Generar árbol
+      </button>
+    </div>
+  </header>
+
+  <div class="facts-card__body">
+    <label class="field">
+      <span>Accidente / Lesión (nodo raíz)</span>
+      <textarea
+        rows="2"
+        [(ngModel)]="accidentText"
+        (ngModelChange)="markDirty()"
+        placeholder="Ej: Conductor resulta con fractura de cadera."
+      ></textarea>
+    </label>
+
+    <div class="facts-list">
+      <div class="fact-row" *ngFor="let item of items; index as i">
+        <div class="fact-row__num">{{ item.id }}</div>
+
+        <div class="fact-row__main">
+          <input
+            type="text"
+            [(ngModel)]="item.text"
+            (ngModelChange)="markDirty()"
+            placeholder="Ej: Grúa horquilla circulaba a velocidad superior a la permitida."
+          />
+
+          <div class="fact-row__meta">
+            <label>
+              <span>Tipo</span>
+              <select [(ngModel)]="item.type" (ngModelChange)="markDirty()">
+                <option value="Hecho">Hecho</option>
+                <option value="Condición">Condición</option>
+                <option value="Acción">Acción</option>
+                <option value="Gestión">Gestión</option>
+              </select>
+            </label>
+
+            <label>
+              <span>Estado</span>
+              <select [(ngModel)]="item.status" (ngModelChange)="markDirty()">
+                <option value="Confirmado">Confirmado</option>
+                <option value="Pendiente">Pendiente</option>
+              </select>
+            </label>
+          </div>
+
+          <textarea
+            rows="2"
+            [(ngModel)]="item.notes"
+            (ngModelChange)="markDirty()"
+            placeholder="Notas (opcional). Si está Pendiente, escribe aquí qué falta verificar."
+          ></textarea>
+        </div>
+
+        <div class="fact-row__actions">
+          <button type="button" class="mini" (click)="moveUp(i)" [disabled]="disabled || i === 0">↑</button>
+          <button type="button" class="mini" (click)="moveDown(i)" [disabled]="disabled || i === items.length - 1">↓</button>
+          <button type="button" class="mini danger" (click)="removeFact(item.id)" [disabled]="disabled">✕</button>
+        </div>
+      </div>
+
+      <div class="empty" *ngIf="items.length === 0">
+        <p>Agrega hechos para construir el árbol.</p>
+      </div>
+    </div>
+  </div>
+</section>
+

@@ -17,6 +17,7 @@ import { CauseCanvasComponent } from './components/cause-canvas.component';
 import { NodeModalComponent } from './components/node-modal.component';
 import { AiToastComponent } from './components/ai-toast.component';
 import { NodeModalMode } from './components/node-modal.component';
+import { FactsEditorComponent } from './components/facts-editor.component';
 
 const DEMO_TREE: CauseNode = {
   id: 1,
@@ -89,7 +90,7 @@ const DEMO_TREE: CauseNode = {
 @Component({
   selector: 'app-cause-tree-page',
   standalone: true,
-  imports: [CommonModule, CauseCanvasComponent, NodeModalComponent, AiToastComponent],
+  imports: [CommonModule, FactsEditorComponent, CauseCanvasComponent, NodeModalComponent, AiToastComponent],
   templateUrl: './cause-tree-page.component.html',
   styleUrl: './cause-tree-page.component.scss'
 })
@@ -618,6 +619,13 @@ export class CauseTreePageComponent {
     } finally {
       this.pdfWorking.set(false);
     }
+  }
+
+  protected onFactsGenerate(evt: { root: CauseNode; meta?: Record<string, any> }): void {
+    const root = evt?.root;
+    if (!root) return;
+    this.tree.set(root);
+    this.persistTree(root, evt?.meta || { source: 'facts_editor' });
   }
 
   private persistTree(root: CauseNode, meta: Record<string, any> = { source: 'ui_edit' }): void {
