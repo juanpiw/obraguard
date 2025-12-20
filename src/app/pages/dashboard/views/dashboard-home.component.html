@@ -14,13 +14,19 @@
       <div class="iper-list__header">
         <div>
           <p>IPER generados</p>
-          <small>{{ iperFiles().length ? 'Últimos archivos disponibles' : 'Aún no hay IPER generados' }}</small>
+          <small>
+            @if (iperFilesSorted().length) {
+              Últimos archivos (último: {{ lastIperTime() || '—' }})
+            } @else {
+              Aún no hay IPER generados
+            }
+          </small>
         </div>
-        <span class="iper-count">{{ iperFiles().length }}</span>
+        <span class="iper-count">{{ iperFilesSorted().length }}</span>
       </div>
       <div class="iper-list">
-        @if (iperFiles().length) {
-          @for (f of iperFiles(); track f.id) {
+        @if (iperFilesSorted().length) {
+          @for (f of iperFilesSorted(); track f.id) {
             <a class="iper-item" [href]="f.iper_url" target="_blank" rel="noopener">
               <div>
                 <p class="iper-item__title">
@@ -28,7 +34,17 @@
                 </p>
                 <small>Obra: {{ f.obraId || 'N/D' }} · Riesgo: {{ f.riesgo || '—' }}</small>
               </div>
-              <span class="iper-item__badge">Descargar</span>
+              <div class="iper-item__actions">
+                <span class="iper-item__badge">Descargar</span>
+                <button
+                  type="button"
+                  class="iper-item__delete"
+                  [disabled]="iperDeleting() === (f.iper_url?.split('/')?.pop() || f.iper_file)"
+                  (click)="deleteIper(f.iper_url?.split('/')?.pop() || f.iper_file || '', $event)"
+                >
+                  {{ iperDeleting() === (f.iper_url?.split('/')?.pop() || f.iper_file) ? 'Eliminando...' : 'Eliminar' }}
+                </button>
+              </div>
             </a>
           }
         } @else {

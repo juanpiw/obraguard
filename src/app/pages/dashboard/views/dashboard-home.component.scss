@@ -202,6 +202,12 @@
   }
 }
 
+.iper-item__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 .iper-item__badge {
   background: #e0f2fe;
   color: #0369a1;
@@ -209,6 +215,29 @@
   border-radius: 999px;
   font-weight: 700;
   font-size: 0.85rem;
+}
+
+.iper-item__delete {
+  border: 1px solid #fca5a5;
+  background: #fff1f2;
+  color: #b91c1c;
+  border-radius: 999px;
+  padding: 0.25rem 0.65rem;
+  font-weight: 700;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border 0.15s ease, opacity 0.15s ease;
+
+  &:hover:not(:disabled) {
+    background: #fecdd3;
+    border-color: #ef4444;
+    color: #7f1d1d;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
 }
 
 .iper-list__empty {

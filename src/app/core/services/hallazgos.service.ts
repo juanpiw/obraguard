@@ -279,6 +279,23 @@ export class HallazgosService {
       );
   }
 
+  deleteIper(file: string): Observable<{ deleted: boolean }> {
+    return this.http.delete<{ data: { deleted: boolean } }>(`${API_BASE}/api/iper/file/${encodeURIComponent(file)}`).pipe(
+      map((resp) => resp.data || { deleted: false }),
+      tap((resp) => {
+        if (resp?.deleted) {
+          this.hallazgosSignal.update((items) =>
+            items.map((h) =>
+              h.iper_url?.includes(file) || h.iper_file === file
+                ? { ...h, iper_file: null, iper_url: null }
+                : h
+            )
+          );
+        }
+      })
+    );
+  }
+
   private mapHallazgo(row: HallazgoListItemResponse): Hallazgo {
     const iperFile = row.iper_file || null;
     return {

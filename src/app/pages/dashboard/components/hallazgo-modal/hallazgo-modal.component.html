@@ -103,6 +103,95 @@
             </div>
           }
 
+          @if (isActiveTab('auto')) {
+            <div class="ai-panel">
+              <div class="ai-panel__header">
+                <div>
+                  <p>Auto análisis de evidencia</p>
+                  <small>IA describirá la imagen y sugerirá riesgo</small>
+                </div>
+                <button type="button" class="ai-button" (click)="analyzeRisk()" [disabled]="aiLoading()">
+                  @if (aiLoading()) {
+                    <svg class="ai-button__spinner" viewBox="0 0 24 24">
+                      <circle class="path" cx="12" cy="12" r="10"></circle>
+                    </svg>
+                    Analizando...
+                  } @else {
+                    <svg viewBox="0 0 24 24" stroke-width="1.5" fill="none">
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.898 20.622L16.125 18l-.773 2.622a.75.75 0 001.546 0z"
+                      />
+                    </svg>
+                    Analizar IA
+                  }
+                </button>
+              </div>
+              @if (aiLoading()) {
+                <div class="ai-progress">
+                  <div class="ai-progress__bar"></div>
+                </div>
+              }
+              <div class="ai-result">
+                <p class="ai-result__label">Descripción IA</p>
+                <textarea
+                  rows="3"
+                  [value]="aiDescripcion() || ''"
+                  (input)="onDescripcionChange($event)"
+                  placeholder="La IA completará esta descripción después del análisis..."
+                ></textarea>
+                @if (aiRiesgo()) {
+                  <span class="ai-result__tag">Riesgo sugerido: {{ aiRiesgo() }}</span>
+                }
+                <div class="ai-result__meta">
+                  @if (aiProb() || aiCons()) {
+                    <span class="pill">P: {{ aiProb() || '—' }}</span>
+                    <span class="pill">C: {{ aiCons() || '—' }}</span>
+                    <span class="pill">VEP: {{ aiVep() || (aiProb() && aiCons() ? aiProb()! * aiCons()! : '—') }}</span>
+                  }
+                  @if (aiNivel()) {
+                    <span class="pill pill--blue">{{ aiNivel() }}</span>
+                  }
+                  @if (aiCodigoMiper()) {
+                    <span class="pill pill--purple">Código MIPER: {{ aiCodigoMiper() }}</span>
+                  }
+                  @if (aiGema()) {
+                    <span class="pill pill--gray">GEMA: {{ aiGema() }}</span>
+                  }
+                  @if (aiAlertaGenero()) {
+                    <span class="pill pill--alert">Género: {{ aiAlertaGenero() }}</span>
+                  }
+                </div>
+              </div>
+              <div class="ai-actions">
+                <button type="button" class="ai-secondary-button" (click)="proposeImprovements()" [disabled]="aiLoading()">
+                  Proponer mejoras
+                </button>
+              </div>
+              @if (showImprovements()) {
+                <div class="ai-recs">
+                  <p class="ai-recs__title">Mejoras sugeridas</p>
+                  @if (aiRecomendaciones().length) {
+                    <textarea
+                      rows="4"
+                      readonly
+                      [value]="aiRecsText()"
+                      placeholder="La IA mostrará aquí las mejoras sugeridas."
+                    ></textarea>
+                  } @else {
+                    <p class="ai-recs__empty">Aún no hay mejoras sugeridas. Ejecuta el análisis IA.</p>
+                  }
+                </div>
+              }
+              @if (aiMessage() && !aiDescripcion()) {
+                <div class="ai-result ai-result--message">
+                  <p>{{ aiMessage() }}</p>
+                </div>
+              }
+            </div>
+          }
+
           <div class="form-field">
             <label for="titulo">Título / Descripción breve</label>
             <input id="titulo" type="text" placeholder="Ej: Cable pelado en 2do piso" formControlName="titulo" />
@@ -111,49 +200,57 @@
             }
           </div>
 
-          <div class="form-grid">
-            <div class="form-field">
-              <label>Actividad</label>
-              <input type="text" formControlName="actividad" placeholder="Ej: Montaje de andamio" />
-            </div>
-            <div class="form-field">
-              <label>Puesto / Tarea</label>
-              <input type="text" formControlName="puesto" placeholder="Ej: Andamiero / Operador" />
-            </div>
+          <div class="manual-toggle">
+            <button type="button" class="ai-secondary-button" (click)="toggleManualFields()">
+              {{ showManualFields() ? 'Ocultar campos manuales' : 'Rellenar manual' }}
+            </button>
           </div>
 
-          <div class="form-grid">
-            <div class="form-field">
-              <label>Lugar específico</label>
-              <input type="text" formControlName="lugar" placeholder="Ej: Torre B, piso 2, zona húmeda" />
+          @if (showManualFields()) {
+            <div class="form-grid">
+              <div class="form-field">
+                <label>Actividad</label>
+                <input type="text" formControlName="actividad" placeholder="Ej: Montaje de andamio" />
+              </div>
+              <div class="form-field">
+                <label>Puesto / Tarea</label>
+                <input type="text" formControlName="puesto" placeholder="Ej: Andamiero / Operador" />
+              </div>
             </div>
-            <div class="form-field">
-              <label>Nº de trabajadores</label>
-              <input type="text" formControlName="trabajadores" placeholder="Ej: 3" />
-            </div>
-          </div>
 
-          <div class="form-grid">
-            <div class="form-field">
-              <label>Factor de riesgo / Peligro</label>
-              <input type="text" formControlName="factor" placeholder="Ej: Caída de altura / eléctrica" />
+            <div class="form-grid">
+              <div class="form-field">
+                <label>Lugar específico</label>
+                <input type="text" formControlName="lugar" placeholder="Ej: Torre B, piso 2, zona húmeda" />
+              </div>
+              <div class="form-field">
+                <label>Nº de trabajadores</label>
+                <input type="text" formControlName="trabajadores" placeholder="Ej: 3" />
+              </div>
             </div>
-            <div class="form-field">
-              <label>Medida de control</label>
-              <input type="text" formControlName="medidaControl" placeholder="Ej: Instalar barandas y líneas de vida" />
-            </div>
-          </div>
 
-          <div class="form-grid">
-            <div class="form-field">
-              <label>Responsable</label>
-              <input type="text" formControlName="responsable" placeholder="Ej: Supervisor turno" />
+            <div class="form-grid">
+              <div class="form-field">
+                <label>Factor de riesgo / Peligro</label>
+                <input type="text" formControlName="factor" placeholder="Ej: Caída de altura / eléctrica" />
+              </div>
+              <div class="form-field">
+                <label>Medida de control</label>
+                <input type="text" formControlName="medidaControl" placeholder="Ej: Instalar barandas y líneas de vida" />
+              </div>
             </div>
-            <div class="form-field">
-              <label>Plazo</label>
-              <input type="text" formControlName="plazo" placeholder="Ej: 2025-12-31" />
+
+            <div class="form-grid">
+              <div class="form-field">
+                <label>Responsable</label>
+                <input type="text" formControlName="responsable" placeholder="Ej: Supervisor turno" />
+              </div>
+              <div class="form-field">
+                <label>Plazo</label>
+                <input type="text" formControlName="plazo" placeholder="Ej: 2025-12-31" />
+              </div>
             </div>
-          </div>
+          }
 
           @if (isActiveTab('manual')) {
             <div class="form-field">

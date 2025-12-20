@@ -39,11 +39,27 @@ export class DashboardHomeComponent {
   protected readonly hallazgos = this.hallazgosService.hallazgos;
   protected readonly stats = this.hallazgosService.stats;
   protected readonly iperFiles = computed(() => this.hallazgos().filter((h) => !!h.iper_url));
+  protected readonly iperFilesSorted = computed(() =>
+    [...this.iperFiles()].sort((a, b) => this.getIperTimestamp(b) - this.getIperTimestamp(a))
+  );
   protected readonly iperLink = computed(() => {
-    const first = this.hallazgos().find((h) => !!h.iper_url);
+    const first = this.iperFilesSorted()[0];
     return first?.iper_url ?? null;
   });
+  protected readonly lastIperTime = computed(() => {
+    const first = this.iperFilesSorted()[0];
+    if (!first) return null;
+    const ts = this.getIperTimestamp(first);
+    if (!ts) return null;
+    return new Date(ts).toLocaleString('es-CL', {
+      hour: '2-digit',
+      minute: '2-digit',
+      day: '2-digit',
+      month: '2-digit'
+    });
+  });
   protected readonly iperExporting = signal(false);
+  protected readonly iperDeleting = signal<string | null>(null);
   protected readonly iperMessage = signal<string | null>(null);
   protected readonly iperBannerVisible = signal(false);
   private bannerTimer: number | null = null;
@@ -148,9 +164,40 @@ export class DashboardHomeComponent {
     window.location.href = url;
   }
 
+  protected deleteIper(fileName: string, event?: Event): void {
+    event?.preventDefault();
+    event?.stopPropagation();
+    if (!fileName) return;
+    this.iperDeleting.set(fileName);
+    this.hallazgosService.deleteIper(fileName).subscribe({
+      next: () => {
+        this.iperMessage.set('IPER eliminado.');
+        this.iperDeleting.set(null);
+        this.hallazgosService.loadHallazgos().subscribe(); // refrescar lista
+      },
+      error: (err) => {
+        console.error('[Dashboard][UI] delete IPER error', err);
+        this.iperMessage.set('No se pudo eliminar el IPER.');
+        this.iperDeleting.set(null);
+      }
+    });
+  }
+
   private detectObraId(): string | number {
     const first = this.hallazgos().find((h) => h.obraId != null);
     return first?.obraId ?? 'obra';
+  }
+
+  private getIperTimestamp(h: any): number {
+    const name = (h?.iper_url?.split('/')?.pop() || h?.iper_file || '') as string;
+    const match = name.match(/_(\d+)\./);
+    if (match && match[1]) {
+      const num = Number(match[1]);
+      if (!Number.isNaN(num)) return num;
+    }
+    const fallback = h?.fecha || h?.created_at;
+    const t = fallback ? Date.parse(fallback) : Date.now();
+    return Number.isNaN(t) ? Date.now() : t;
   }
 
   private showBanner(): void {

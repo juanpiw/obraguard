@@ -46,6 +46,7 @@ export class HallazgoModalComponent {
   protected readonly aiGema = signal<string | null>(null);
   protected readonly aiAlertaGenero = signal<string | null>(null);
   protected readonly showImprovements = signal(false);
+  protected readonly showManualFields = signal(false);
   protected readonly submitting = signal(false);
   protected readonly captureMode = signal<CaptureMode>('upload');
   protected readonly activeTab = signal<FormTab>('auto');
@@ -347,6 +348,10 @@ export class HallazgoModalComponent {
   protected aiRecsText(): string {
     const recs = this.aiRecomendaciones() || [];
     return recs.join('\n').trim();
+  }
+
+  protected toggleManualFields(): void {
+    this.showManualFields.update((v) => !v);
   }
 
   private buildRootJson(): CauseNode {
