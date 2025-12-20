@@ -36,13 +36,14 @@
             ],
             "scripts": [],
             "server": "src/main.server.ts",
-            "prerender": true,
+            "prerender": false,
             "ssr": {
               "entry": "server.ts"
             }
           },
           "configurations": {
             "production": {
+              "prerender": true,
               "budgets": [
                 {
                   "type": "initial",
@@ -58,6 +59,7 @@
               "outputHashing": "all"
             },
             "development": {
+              "prerender": false,
               "optimization": false,
               "extractLicenses": false,
               "sourceMap": true
