@@ -212,36 +212,39 @@
             <div class="submit-modal__content">
               <h4>Selecciona cómo enviar</h4>
               <div class="submit-options">
-                <label class="submit-option">
+                <label class="submit-option" (click)="setSubmitOption('telefono')">
                   <input
                     type="radio"
                     name="submitOption"
                     [checked]="selectedSubmitOption() === 'telefono'"
                     (change)="setSubmitOption('telefono')"
+                    value="telefono"
                   />
                   <div>
                     <p>Enviar reporte por teléfono</p>
                     <small>El equipo te contactará.</small>
                   </div>
                 </label>
-                <label class="submit-option">
+                <label class="submit-option" (click)="setSubmitOption('arbol')">
                   <input
                     type="radio"
                     name="submitOption"
                     [checked]="selectedSubmitOption() === 'arbol'"
                     (change)="setSubmitOption('arbol')"
+                    value="arbol"
                   />
                   <div>
                     <p>Enviar árbol de causa</p>
                     <small>Incluye el árbol de causas generado.</small>
                   </div>
                 </label>
-                <label class="submit-option">
+                <label class="submit-option" (click)="setSubmitOption('normal')">
                   <input
                     type="radio"
                     name="submitOption"
                     [checked]="selectedSubmitOption() === 'normal'"
                     (change)="setSubmitOption('normal')"
+                    value="normal"
                   />
                   <div>
                     <p>Enviar estándar</p>

@@ -106,16 +106,21 @@ export class HallazgoModalComponent {
   }
 
   protected toggleSubmitOptions(): void {
+    console.log('[Hallazgos][UI] Toggle opciones de envío');
     this.selectedSubmitOption.set('normal');
     this.showSubmitOptions.update((v) => !v);
   }
 
   protected setSubmitOption(option: 'normal' | 'telefono' | 'arbol'): void {
+    console.log('[Hallazgos][UI] Opción seleccionada', option);
     this.selectedSubmitOption.set(option);
   }
 
   protected confirmSubmit(): void {
-    this.handleSubmit(this.selectedSubmitOption());
+    const option = this.selectedSubmitOption();
+    console.log('[Hallazgos][UI] Confirmar envío', option);
+    this.showSubmitOptions.set(false);
+    this.handleSubmit(option);
   }
 
   protected async handleSubmit(mode: 'normal' | 'telefono' | 'arbol' = 'normal'): Promise<void> {
