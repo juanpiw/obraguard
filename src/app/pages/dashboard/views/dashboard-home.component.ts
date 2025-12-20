@@ -38,9 +38,14 @@ export class DashboardHomeComponent {
 
   protected readonly hallazgos = this.hallazgosService.hallazgos;
   protected readonly stats = this.hallazgosService.stats;
-  protected readonly iperLink = signal<string | null>(null);
+  protected readonly iperLink = computed(() => {
+    const first = this.hallazgos().find((h) => !!h.iper_url);
+    return first?.iper_url ?? null;
+  });
   protected readonly iperExporting = signal(false);
   protected readonly iperMessage = signal<string | null>(null);
+  protected readonly iperBannerVisible = signal(false);
+  private bannerTimer: number | null = null;
 
   protected readonly kpiCards = computed<DashboardKpi[]>(() => {
     const st = this.stats();
@@ -103,10 +108,7 @@ export class DashboardHomeComponent {
 
   constructor() {
     // cargar valores reales desde backend
-    this.hallazgosService
-      .loadHallazgos()
-      .pipe(finalize(() => this.refreshIperLink()))
-      .subscribe();
+    this.hallazgosService.loadHallazgos().subscribe();
     this.hallazgosService.loadStats().subscribe();
   }
 
@@ -124,24 +126,31 @@ export class DashboardHomeComponent {
       .subscribe({
         next: (resp) => {
           const url = resp.iperUrl || (resp.iperFile ? `${location.origin}/exports/${resp.iperFile}` : null);
+          console.log('[Dashboard][UI] exportIper ok', { obraId, iperFile: resp.iperFile, iperUrl: url });
           this.iperLink.set(url);
           this.iperMessage.set('Matriz generada.');
+          this.showBanner();
         },
         error: (err) => {
-          console.error('[Dashboard][UI] export IPER error', err);
+          console.error('[Dashboard][UI] export IPER error', { obraId, message: err?.message });
           this.iperMessage.set('No se pudo generar el IPER.');
         }
       });
   }
 
-  protected refreshIperLink(): void {
-    const firstWithIper = this.hallazgos().find((h) => !!h.iper_url);
-    this.iperLink.set(firstWithIper?.iper_url ?? null);
-  }
-
   private detectObraId(): string | number {
     const first = this.hallazgos().find((h) => h.obraId != null);
     return first?.obraId ?? 'obra';
+  }
+
+  private showBanner(): void {
+    this.iperBannerVisible.set(true);
+    if (this.bannerTimer) {
+      window.clearTimeout(this.bannerTimer);
+    }
+    this.bannerTimer = window.setTimeout(() => {
+      this.iperBannerVisible.set(false);
+    }, 4000);
   }
 }
 

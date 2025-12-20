@@ -171,7 +171,10 @@ export class HallazgoModalComponent {
 
   protected setSubmitOption(option: 'normal' | 'telefono' | 'arbol' | 'matriz'): void {
     console.log('[Hallazgos][UI] Opción seleccionada', option);
-    this.selectedSubmitOption.set(option);
+    if (option !== 'matriz') {
+      return;
+    }
+    this.selectedSubmitOption.set('matriz');
   }
 
   protected confirmSubmit(): void {

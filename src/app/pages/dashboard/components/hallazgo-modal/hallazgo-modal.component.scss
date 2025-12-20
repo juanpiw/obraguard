@@ -683,6 +683,21 @@
   }
 }
 
+.submit-option--disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+  filter: grayscale(0.35);
+
+  input {
+    cursor: not-allowed;
+  }
+
+  p,
+  small {
+    color: #9ca3af;
+  }
+}
+
 .submit-modal__actions {
   display: flex;
   justify-content: flex-end;

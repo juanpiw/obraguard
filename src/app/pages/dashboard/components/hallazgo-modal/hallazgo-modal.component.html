@@ -275,12 +275,12 @@
             <div class="submit-modal__content">
               <h4>Selecciona cómo enviar</h4>
               <div class="submit-options">
-                <label class="submit-option" (click)="setSubmitOption('telefono')">
+                <label class="submit-option submit-option--disabled">
                   <input
                     type="radio"
                     name="submitOption"
-                    [checked]="selectedSubmitOption() === 'telefono'"
-                    (change)="setSubmitOption('telefono')"
+                    disabled
+                    aria-disabled="true"
                     value="telefono"
                   />
                   <div>
@@ -288,12 +288,12 @@
                     <small>El equipo te contactará.</small>
                   </div>
                 </label>
-                <label class="submit-option" (click)="setSubmitOption('arbol')">
+                <label class="submit-option submit-option--disabled">
                   <input
                     type="radio"
                     name="submitOption"
-                    [checked]="selectedSubmitOption() === 'arbol'"
-                    (change)="setSubmitOption('arbol')"
+                    disabled
+                    aria-disabled="true"
                     value="arbol"
                   />
                   <div>
