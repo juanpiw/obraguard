@@ -55,7 +55,7 @@ export class HallazgoModalComponent {
     riesgo: ['Medio' as HallazgoRiesgo, Validators.required],
     sector: ['', [Validators.required, Validators.minLength(3)]],
     anonimo: [false],
-    reportero: [{ value: REPORTERO_DEFAULT, disabled: true }]
+    reportero: [REPORTERO_DEFAULT]
   });
 
   protected get anonimo(): boolean {
@@ -72,7 +72,9 @@ export class HallazgoModalComponent {
       control.disable();
     } else {
       control.enable();
-      control.setValue(REPORTERO_DEFAULT);
+      if (!control.value) {
+        control.setValue(REPORTERO_DEFAULT);
+      }
     }
   }
 
@@ -153,6 +155,7 @@ export class HallazgoModalComponent {
         root_json: mode === 'arbol' ? rootJson : undefined
       };
 
+      console.log('[Hallazgos][UI] payload', { mode, payload });
       const saved = await firstValueFrom(this.hallazgosService.createHallazgo(payload));
       console.log('[Hallazgos][UI] handleSubmit success', { mode, saved });
 
@@ -166,7 +169,7 @@ export class HallazgoModalComponent {
       if (mode === 'arbol') {
         const causeTreeId = saved?.causeTreeId ?? null;
         if (!causeTreeId) {
-          console.error('[Hallazgos][UI] No causeTreeId returned, staying in modal');
+          console.error('[Hallazgos][UI] No causeTreeId returned, staying in modal', { saved });
           this.aiMessage.set('No se pudo crear el árbol de causas. Intenta nuevamente.');
           return;
         }

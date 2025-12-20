@@ -68,7 +68,7 @@ export class BusinessModelComponent {
     },
     {
       title: 'Híbrido por Proyecto',
-      subtitle: 'ObraGuard',
+      subtitle: 'Vigía.AI',
       description:
         'Tarifa fija mensual por obra activa. Usuarios ilimitados + IA incluida con "Fair Use Policy".',
       icon: 'verified_user',

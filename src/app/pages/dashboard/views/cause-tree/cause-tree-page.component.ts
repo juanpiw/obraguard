@@ -146,7 +146,8 @@ export class CauseTreePageComponent {
             });
           }
         },
-        error: () => {
+        error: (err) => {
+          console.error('[CauseTree][UI] history load error', err);
           this.error.set('No se pudo cargar el historial de árboles.');
         }
       });
@@ -171,7 +172,8 @@ export class CauseTreePageComponent {
         takeUntilDestroyed(this.destroyRef)
       )
       .subscribe({
-        error: () => {
+        error: (err) => {
+          console.error('[CauseTree][UI] tree load error', err);
           this.error.set('No se pudo cargar el árbol. Mostrando datos de ejemplo.');
           this.tree.set(DEMO_TREE);
         }
